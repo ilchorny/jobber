@@ -17,6 +17,7 @@ from . import achievements as ach_mod
 from . import draft as draft_mod
 from . import extract as extract_mod
 from . import jd, library, profile, render, report
+from . import review as review_mod
 from .llm import LLMConfig
 
 app = typer.Typer(
@@ -385,6 +386,46 @@ def extract(
         f"[green]Wrote[/green] {path}: {n_roles} roles, {n_ach} achievements, "
         f"{n_pub} publications. Review and edit by hand before your next `jobber apply`."
     )
+
+
+@app.command()
+def review(app_id: str = typer.Argument(...)):
+    """Audit the drafted cover letter and resume against the achievements DB.
+
+    Runs an independent LLM pass that flags hallucinations, attribution slips,
+    inaccurate comparisons, and citation problems. Writes review.md and
+    review.pdf in the application directory.
+    """
+    out_dir = _require_app(app_id)
+    cover_path = out_dir / "cover_letter.md"
+    resume_path = out_dir / "resume.md"
+    req_path = out_dir / "requirements.json"
+    if not (cover_path.exists() and resume_path.exists() and req_path.exists()):
+        console.print(
+            f"[red]Missing inputs in {out_dir}.[/red] Run `jobber apply` first."
+        )
+        raise typer.Exit(2)
+
+    achievements = ach_mod.load()
+    requirements = json.loads(req_path.read_text())
+
+    console.print(f"Reviewing {app_id}...")
+    md = review_mod.review_documents(
+        cover_letter=cover_path.read_text(),
+        resume=resume_path.read_text(),
+        achievements_json=ach_mod.as_prompt_json(achievements),
+        requirements=requirements,
+    )
+    review_md_path = out_dir / "review.md"
+    review_md_path.write_text(md + "\n")
+    console.print(f"[green]wrote[/green] {review_md_path}")
+
+    review_pdf_path = out_dir / "review.pdf"
+    try:
+        render.md_to_pdf(review_md_path, review_pdf_path)
+        console.print(f"[green]wrote[/green] {review_pdf_path}")
+    except Exception as exc:
+        console.print(f"[yellow]PDF skipped:[/yellow] {exc}")
 
 
 @app.command(name="claude-install")

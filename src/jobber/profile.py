@@ -123,25 +123,63 @@ def write_template() -> Path:
     return path
 
 
-def seed_from_claude_memory(claude_root: Path | None = None) -> list[Path]:
-    """Read Claude memory files and write them verbatim into profile.yaml.
+# Memory filename prefixes that are SAFE to seed into profile.yaml. These should
+# contain only voice rules, drafting constraints, and attribution overrides about
+# the candidate. Project-specific notes about other companies, interviews, or
+# external parties are excluded by default because they leak unrelated context
+# into the drafter (e.g. another company's tech stack ending up in a cover letter).
+DEFAULT_SEED_PREFIXES = ("feedback_", "user_")
 
-    Walks ~/.claude/projects/*/memory/*.md, embeds each file's contents inside
-    a single `claude_memory:` block in profile.yaml as a literal multi-line YAML
-    string. Downstream prompts read profile.yaml as opaque text, so the exact
-    structure is preserved without needing an LLM round-trip during init.
+# Files matching these patterns are explicitly included even if they don't match
+# DEFAULT_SEED_PREFIXES, because they hold attribution / track-record facts about
+# the candidate that the drafter needs.
+DEFAULT_SEED_NAMES = (
+    "project_personal_ml_contributions.md",  # which projects were personally built vs directed
+)
 
-    Returns the list of memory files that were read.
+
+def seed_from_claude_memory(
+    claude_root: Path | None = None,
+    *,
+    include_prefixes: tuple[str, ...] = DEFAULT_SEED_PREFIXES,
+    include_names: tuple[str, ...] = DEFAULT_SEED_NAMES,
+) -> list[Path]:
+    """Read Claude memory files and write the relevant ones into profile.yaml.
+
+    Walks ~/.claude/projects/*/memory/*.md and selects files that match
+    `include_prefixes` (default: feedback_*, user_*) or `include_names`
+    (default: project_personal_ml_contributions.md). The contents are embedded
+    verbatim inside a `claude_memory:` literal block in profile.yaml.
+
+    Project notes about OTHER parties (Glyphic, Ozkan, etc.) and reference
+    memories about external systems are DELIBERATELY excluded so they cannot
+    bleed into drafts as if they were part of the candidate's track record.
+
+    Returns the list of memory files that were included.
     """
     claude_root = claude_root or (Path.home() / ".claude" / "projects")
     if not claude_root.exists():
         return []
-    memory_files = sorted(claude_root.glob("*/memory/*.md"))
-    if not memory_files:
-        return memory_files
+    all_files = sorted(claude_root.glob("*/memory/*.md"))
+    if not all_files:
+        return all_files
+
+    selected: list[Path] = []
+    for mf in all_files:
+        name = mf.name
+        if name in include_names:
+            selected.append(mf)
+            continue
+        if any(name.startswith(pref) for pref in include_prefixes):
+            selected.append(mf)
+
+    if not selected:
+        ensure_home()
+        profile_path().write_text(EMPTY_TEMPLATE)
+        return selected
 
     blocks: list[str] = []
-    for mf in memory_files:
+    for mf in selected:
         try:
             text = mf.read_text(errors="replace").strip()
         except OSError:
@@ -161,4 +199,4 @@ def seed_from_claude_memory(claude_root: Path | None = None) -> list[Path]:
     ensure_home()
     path = profile_path()
     path.write_text(body)
-    return memory_files
+    return selected
