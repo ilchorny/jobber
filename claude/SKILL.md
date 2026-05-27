@@ -63,3 +63,23 @@ If `jobber apply` fails with "achievements DB is empty" or "library index is emp
 - `jobber extract` to bootstrap the achievements DB.
 
 If it fails with "ANTHROPIC_API_KEY is not set" AND `claude` is not on PATH, the user needs one of: install Claude Code or export `ANTHROPIC_API_KEY`. When invoked from inside Claude Code itself, the `claude` CLI is already on PATH and jobber uses it as the LLM backend automatically.
+
+## Google Drive libraries
+
+The `jobber init --library` flag wants a local filesystem path. If the user's past materials live in a Google Drive folder and they ask you to "use" or "point jobber at" that folder, do this:
+
+1. Pick or create a local destination, e.g. `~/jobber-library/`. Make the subfolders `resumes/`, `cover_letters/`, `jds/`, `notes/` if they don't exist.
+2. If the Google Drive MCP is available in the current session (look for tools like `mcp__claude_ai_Google_Drive__search_files`, `mcp__claude_ai_Google_Drive__read_file_content`, `mcp__claude_ai_Google_Drive__download_file_content`), use it to:
+   - List the folder contents (`search_files` with `parentId = '<folder-id>'`).
+   - Download each relevant file (resumes, cover letters, JDs, notes) into the appropriate local subfolder. Skip files that are clearly not job-search material (tax docs, photos, unrelated PDFs).
+   - Confirm the file count with the user before proceeding.
+3. Then call:
+
+   ```bash
+   jobber init --library ~/jobber-library
+   jobber extract
+   ```
+
+Do NOT pass a Drive URL or Drive folder ID directly to `jobber init --library`. The CLI will reject it because the standalone jobber process has no Drive access. The MCP belongs to your session, not to the CLI subprocess.
+
+If the user wants the library to stay in sync with Drive over time, surface that as a manual step for now: re-run the MCP-driven sync, then `jobber finalize <app-id> --refresh-db` or `jobber extract --overwrite` to refresh the achievements DB.

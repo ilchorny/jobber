@@ -71,11 +71,44 @@ def init(
     ),
 ):
     """Create ~/.jobber/, optionally seed profile from Claude memory, and link a library folder."""
+    # Step 1: validate --library BEFORE touching any state. A bad value here
+    # (e.g. a URL) used to clobber an existing profile.yaml because
+    # write_template() ran first.
+    if library_path is not None:
+        # Reject URLs explicitly. The CLI is filesystem-only on purpose; the
+        # Claude Code skill is the right place to translate a Drive folder into
+        # a local path via MCP before calling jobber init.
+        as_str = str(library_path)
+        if as_str.startswith(("http://", "https://")) or "drive.google.com" in as_str:
+            console.print(
+                "[red]--library expects a local filesystem path, not a URL.[/red]\n"
+                "If your past materials are in Google Drive, either:\n"
+                "  - Use Claude Code with the Google Drive MCP and ask it to sync the\n"
+                "    folder into a local directory, then re-run "
+                "`jobber init --library <that-local-path>`; or\n"
+                "  - Download the folder manually (`gdrive`, `rclone`, or the Drive UI)\n"
+                "    and point --library at the local copy.\n"
+                "\nNothing was modified."
+            )
+            raise typer.Exit(2)
+        library_path = library_path.expanduser().resolve()
+        if not library_path.exists():
+            console.print(
+                f"[red]Library path does not exist:[/red] {library_path}\n"
+                "Nothing was modified."
+            )
+            raise typer.Exit(2)
+
+    # Step 2: state-modifying work only happens once --library passed validation.
     # If a library is provided, create the home WITHOUT pre-populating library subdirs
     # so we can replace the empty library/ with a symlink. Otherwise create the
     # standard subdir layout so the user can drop files in.
     home = profile.ensure_home(with_library_subdirs=library_path is None)
     console.print(f"[green]Created[/green] {home}")
+
+    # Don't clobber an existing populated profile.yaml on re-runs.
+    existing_profile = profile.profile_path()
+    profile_already_present = existing_profile.exists() and existing_profile.stat().st_size > len(profile.EMPTY_TEMPLATE) // 2
 
     if seed_from_claude_memory:
         files = profile.seed_from_claude_memory()
@@ -86,20 +119,23 @@ def init(
         else:
             console.print("[yellow]No Claude memory files found.[/yellow] Wrote an empty template.")
             profile.write_template()
+    elif profile_already_present:
+        console.print(
+            f"[yellow]profile.yaml already exists and looks populated; leaving it.[/yellow] "
+            f"({existing_profile})"
+        )
     else:
         profile.write_template()
-        console.print("[green]Wrote[/green] empty profile.yaml template at " f"{profile.profile_path()}")
+        console.print(f"[green]Wrote[/green] empty profile.yaml template at {existing_profile}")
 
     # Always create an empty achievements.json template if missing. This is the
     # authoritative store; users populate it via `jobber extract` or by hand.
+    # write_empty_template() is a no-op when the file already exists, so reruns
+    # never blow away a populated DB.
     ap = ach_mod.write_empty_template()
     console.print(f"[green]Achievements DB[/green] at {ap}")
 
     if library_path is not None:
-        library_path = library_path.expanduser().resolve()
-        if not library_path.exists():
-            console.print(f"[red]Library path does not exist:[/red] {library_path}")
-            raise typer.Exit(2)
         target = home / "library"
         # Replace any existing empty library/ with a symlink. If the user already
         # has content, refuse rather than clobber.
