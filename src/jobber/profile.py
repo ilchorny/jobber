@@ -124,9 +124,14 @@ def write_template() -> Path:
 
 
 def seed_from_claude_memory(claude_root: Path | None = None) -> list[Path]:
-    """Read ~/.claude/projects/*/memory/*.md and write extracted facts into profile.yaml.
+    """Read Claude memory files and write them verbatim into profile.yaml.
 
-    Returns the list of memory files that were read. Never reads anything else.
+    Walks ~/.claude/projects/*/memory/*.md, embeds each file's contents inside
+    a single `claude_memory:` block in profile.yaml as a literal multi-line YAML
+    string. Downstream prompts read profile.yaml as opaque text, so the exact
+    structure is preserved without needing an LLM round-trip during init.
+
+    Returns the list of memory files that were read.
     """
     claude_root = claude_root or (Path.home() / ".claude" / "projects")
     if not claude_root.exists():
@@ -135,38 +140,25 @@ def seed_from_claude_memory(claude_root: Path | None = None) -> list[Path]:
     if not memory_files:
         return memory_files
 
-    # We import here to avoid a top-level circular dependency in tests.
-    from .llm import call
-
-    blobs = []
+    blocks: list[str] = []
     for mf in memory_files:
-        text = mf.read_text(errors="replace")
-        blobs.append(f"--- {mf.name} ---\n{text}")
-    combined = "\n\n".join(blobs)
+        try:
+            text = mf.read_text(errors="replace").strip()
+        except OSError:
+            continue
+        blocks.append(f"### {mf.name}\n{text}")
 
-    system = (
-        "You convert a user's Claude Code memory notes into a structured jobber profile. "
-        "Output ONLY valid YAML matching this schema (omit keys that have no evidence):\n\n"
-        "contact: { name, email, phone, city }\n"
-        "voice: { cover_letter, resume_summary }\n"
-        "constraints: { forbidden_patterns: [...] }\n"
-        "attribution: { personally_built: [...], directed_team_reviewed: [...], led_org: [...] }\n"
-        "stretches_to_avoid: [...]\n\n"
-        "Rules:\n"
-        "- Use the user's exact phrasing for voice rules.\n"
-        "- Personally-built vs directed-team attributions must be honored exactly.\n"
-        "- If a memory says 'never use X', put X in constraints.forbidden_patterns.\n"
-        "- Do not invent facts.\n"
+    combined = "\n\n".join(blocks)
+    # Indent every line by two spaces for the literal block-scalar in YAML.
+    indented = "\n".join("  " + line if line else "  " for line in combined.splitlines())
+    body = (
+        EMPTY_TEMPLATE.rstrip()
+        + "\n\nclaude_memory: |\n"
+        + indented
+        + "\n"
     )
-    yaml_text = call(system=system, user=combined, cache_system=False)
-
-    # Strip any markdown code fence the model may have added.
-    cleaned = yaml_text.strip()
-    if cleaned.startswith("```"):
-        lines = [ln for ln in cleaned.splitlines() if not ln.startswith("```")]
-        cleaned = "\n".join(lines)
 
     ensure_home()
     path = profile_path()
-    path.write_text(cleaned + "\n")
+    path.write_text(body)
     return memory_files
