@@ -65,13 +65,46 @@ The reviewer is a separate LLM pass that audits the drafted documents against th
 jobber claude-install
 ```
 
-That installs a thin skill wrapper to `~/.claude/skills/jobber/` and allowlists `jobber` in your Claude Code permissions. After that, you can type:
+That installs a thin skill wrapper to `~/.claude/skills/jobber/` and allowlists `jobber` in your Claude Code permissions. After that, every jobber command works from inside a Claude Code session, either as a slash invocation or just by asking Claude in natural language. Claude shells out via Bash, reads the resulting files, and helps you iterate.
+
+### Slash-invocation form
 
 ```
-/jobber apply <JD URL>
+/jobber apply <JD URL or path>
+/jobber apply <JD URL> --context "lean on FDA work, ex-Roche hiring manager"
+/jobber review <app-id>
+/jobber render <app-id>
+/jobber finalize <app-id>
+/jobber finalize <app-id> --refresh-db
+/jobber map <app-id>
+/jobber draft <app-id>
+/jobber extract               # rebuild achievements DB
+/jobber extract --overwrite
 ```
 
-or just paste a JD into a Claude Code conversation and ask for an application. Claude invokes the CLI, surfaces the mapping report, and helps you iterate.
+`<app-id>` is the directory name under `~/.jobber/applications/`, e.g. `acme_staff_engineer_2026-05-27`.
+
+### Natural-language form
+
+You can also just talk to Claude. The skill wrapper teaches it which command maps to what:
+
+> "Apply to this JD: https://job-boards.greenhouse.io/.../jobs/12345 and lean on the FDA work."
+
+> "Audit the cover letter for that Illumina application."
+
+> "I edited the resume; re-render the PDFs and push it back to my library."
+
+> "Refresh my achievements DB."
+
+Claude picks up the application id from context, surfaces the mapping report's key findings, and offers next steps (edit the mapping, provide more context, iterate on drafts, finalize).
+
+### Typical Claude Code workflow
+
+1. Paste a JD URL into the session.
+2. Claude runs `jobber apply` and summarizes the mapping report (fit counts, honest gaps).
+3. You ask Claude to run the reviewer; it surfaces any hallucinations or attribution slips.
+4. You edit `cover_letter.md` and `resume.md` in the editor of your choice.
+5. Claude re-renders PDFs and runs `jobber finalize` so the next extract sees your final language.
 
 ## Privacy
 
