@@ -1,0 +1,35 @@
+contact:
+  name: "Alex Park"
+  email: "alex.park@example.com"
+  phone: "+1 (555) 010-3344"
+  city: "Portland, OR"
+
+voice:
+  cover_letter: |
+    Thesis-driven. Open with an opinion about the role or market, not "I am writing
+    to express interest." Three to four paragraphs total. No sub-heads, no bullets.
+    Cite specific evidence inline (project names, metrics, publications).
+    350 to 450 words.
+  resume_summary: |
+    Concrete and short. Lead with the candidate's most distinctive technical
+    contribution, not a generic "10+ years of experience" sentence.
+
+constraints:
+  forbidden_patterns:
+    - "no em-dashes"
+    - "no exclamation points in prose"
+    - "no 'I am writing to express interest' opener"
+
+attribution:
+  personally_built:
+    - "Lumen Health internal feature-flag service"
+    - "Open-source library `paginate-cursor`"
+  directed_team_reviewed:
+    - "Nimbus Robotics fleet telemetry pipeline"
+  led_org:
+    - "Lumen Health API platform team (12 engineers)"
+
+stretches_to_avoid:
+  - "iOS"
+  - "Swift"
+  - "Unity"

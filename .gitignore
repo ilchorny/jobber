@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv
+venv/
+env/
+ENV/
+
+# Testing / linting
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets and personal data — DO NOT REMOVE THESE LINES
+.env
+.env.*
+*.pem
+*.key
+.secrets.baseline
+
+# User-local jobber data — must never enter the repo
+.jobber/
+**/.jobber/
+~/.jobber/
+
+# Example-overlay directory for personal use (kept local only)
+examples/private/
+
+# Anything matching common personal-data filename hints (defensive)
+*chorny*
+*ilya*
+*Ilya*
+*real_*
+*_real.*
