@@ -50,10 +50,12 @@ library (voice samples)                                                   ▼
                                                   polished drafts → library → next extract
 ```
 
-Two layers of evidence on your machine, both gitignored:
+Two stores on your machine, both gitignored, each with a distinct role:
 
-- **`~/.jobber/achievements.json`**: structured database of every bullet, publication, patent, and credential, each with a stable `attribution` flag (`personally_built`, `directed_team_reviewed`, `led_org`, `co_led`, `co_author`, `contributed`, `partnered_external`). This is the authoritative source for every draft.
-- **`~/.jobber/library/`**: supplementary text and voice samples (past resumes, cover letters, JDs, notes). Used for voice context and as input to `jobber extract`; never a free source of new facts for the drafter.
+- **`~/.jobber/library/`**: the raw corpus. Past resumes, cover letters, JDs you've applied to, notes. You add files here whenever you have new material. This is the upstream input to `jobber extract`.
+- **`~/.jobber/achievements.json`**: the structured database produced by `jobber extract` from the library. Every bullet, publication, patent, and credential, each with a stable `attribution` flag (`personally_built`, `directed_team_reviewed`, `led_org`, `co_led`, `co_author`, `contributed`, `partnered_external`). This is the authoritative source for every draft — facts must round-trip through here so attribution can be enforced.
+
+At draft time the library is still passed to the drafter, but only as a voice/tone reference. Any factual claim in a generated cover letter or resume should trace back to an achievement in the DB, not to a raw library file. `jobber review` enforces this by auditing the drafts against the DB.
 
 The reviewer is a separate LLM pass that audits the drafted documents against the DB and the JD. It flags hallucinations (claims with no DB backing), attribution slips (the draft says "I built" but the DB says "directed_team_reviewed"), inaccurate comparisons, and citation errors. Treat its findings as a checklist before you send.
 
