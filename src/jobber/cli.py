@@ -389,6 +389,69 @@ def extract(
 
 
 @app.command()
+def finalize(
+    app_id: str = typer.Argument(..., help="Application id to finalize."),
+    refresh_db: bool = typer.Option(
+        False,
+        "--refresh-db",
+        help="After copying, re-run `jobber extract --overwrite` to refresh achievements.json.",
+    ),
+):
+    """Copy the (presumably user-edited) drafts back into the library folder.
+
+    The library is the corpus that the next `jobber extract` will read, so this
+    closes the loop: each application's finalized cover letter, resume, and JD
+    become input for future drafts.
+
+    Files are written under library/{cover_letters,resumes,jds}/ with a stable
+    name derived from the application id. Existing files are overwritten.
+    """
+    out_dir = _require_app(app_id)
+    home = profile.home_dir()
+    library_root = home / "library"
+
+    # Resolve through any symlink so we write into the real library folder.
+    if library_root.is_symlink():
+        library_root = library_root.resolve()
+
+    targets = [
+        ("cover_letter.md", library_root / "cover_letters", f"{app_id}_cover_letter.md"),
+        ("resume.md", library_root / "resumes", f"{app_id}_resume.md"),
+        ("jd.md", library_root / "jds", f"{app_id}_jd.md"),
+    ]
+    copied: list[Path] = []
+    for src_name, dst_dir, dst_name in targets:
+        src = out_dir / src_name
+        if not src.exists():
+            console.print(f"[yellow]skipped[/yellow] {src_name}: not found in {out_dir}")
+            continue
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        dst = dst_dir / dst_name
+        shutil.copyfile(src, dst)
+        copied.append(dst)
+        console.print(f"[green]wrote[/green] {dst}")
+
+    if not copied:
+        console.print("[red]Nothing was finalized.[/red]")
+        raise typer.Exit(2)
+
+    if refresh_db:
+        console.print()
+        console.print("Refreshing achievements DB from updated library...")
+        prof = profile.load()
+        data = ach_mod.extract_from_library(profile_yaml=prof.as_yaml())
+        ach_mod.save(data)
+        n_ach = len(data.get("achievements") or [])
+        console.print(f"[green]refreshed[/green] achievements DB ({n_ach} achievements)")
+    else:
+        console.print()
+        console.print(
+            "Next: run `jobber extract --overwrite` (or `jobber finalize {app} --refresh-db`) "
+            "to fold the new material into your achievements DB.".format(app=app_id)
+        )
+
+
+@app.command()
 def review(app_id: str = typer.Argument(...)):
     """Audit the drafted cover letter and resume against the achievements DB.
 
