@@ -9,17 +9,27 @@ from .llm import call
 COVER_SYSTEM = """\
 You draft a cover letter for the candidate. Inputs you receive:
   1. JD requirements JSON
-  2. Mapping JSON (requirements ↔ evidence with fit ratings, attribution, thesis_candidates)
-  3. Library YAML
+  2. Mapping JSON (requirements -> achievement_id with fit ratings, thesis_candidates)
+  3. Achievements DB JSON (AUTHORITATIVE source of every bullet you may reference)
   4. User profile YAML (voice rules, constraints, attribution overrides)
-  5. Optional extra context
+  5. Optional supplementary library context (voice samples only)
+  6. Optional extra context
 
 Output ONLY the cover letter in Markdown. Nothing else. No preamble, no explanation, no code fences.
 
 General rules:
 - Use the candidate's voice as described in profile.voice.cover_letter.
-- Honor every entry in profile.constraints.forbidden_patterns (e.g. "no em-dashes" → use periods/colons/commas instead).
-- Respect attribution exactly. Use the phrasing implied by each mapping evidence entry's attribution.
+- Honor every entry in profile.constraints.forbidden_patterns (e.g. "no em-dashes" -> use periods/colons/commas instead).
+- Do not use em-dashes (—) in any context, including title formatting. Use commas, periods, or pipes (|) instead. (An ASCII hyphen-minus is fine; an en-dash – is fine for date ranges only.)
+- Look up each evidence entry by achievement_id in the Achievements DB. Use the achievement's `text`, and shape your language around its `attribution`:
+    personally_built       -> "I built / designed / wrote / implemented"
+    directed_team_reviewed -> "I directed the team that built / I reviewed and approved"
+    led_org                -> "I led" / "the organization I led"
+    co_led                 -> "I co-led"
+    co_author              -> "I co-authored"
+    contributed            -> "I contributed to"
+    partnered_external     -> "I partnered with X on"
+  Never escalate attribution (e.g. never say "I built" when the DB says "directed_team_reviewed").
 - Pick one thesis from thesis_candidates (or compose a stronger one) and open with it. No "I am writing to express interest" filler.
 - Cite specific evidence: 2-4 inline parentheticals are fine (publications, study names, metrics).
 - Cover only the strongest matches (mapping entries where include_in_cover_letter=true).
@@ -32,8 +42,8 @@ General rules:
 RESUME_SYSTEM = """\
 You draft a one-to-two page resume in Markdown. Inputs:
   1. JD requirements JSON
-  2. Mapping JSON
-  3. Library YAML (the canonical source of bullets — never invent new bullets)
+  2. Mapping JSON (achievement_id references)
+  3. Achievements DB JSON (AUTHORITATIVE source of every bullet)
   4. User profile YAML
 
 Output ONLY the resume in Markdown. No preamble, no explanation.
@@ -41,12 +51,21 @@ Output ONLY the resume in Markdown. No preamble, no explanation.
 General rules:
 - Header: candidate's name (large), then contact lines (city, phone, email) and a tagline.
 - Tagline: 4-5 pipe-separated themes that mirror the JD's top requirements where evidence supports.
-- Summary paragraph: short, hits the JD's vocabulary where backed by evidence. Use library bullets as the source of truth.
-- Professional Experience: roles in reverse-chronological order. Each role: company (bold), title and dates (italics), then 3-7 bullet points pulled from library.bullets. Use the JD's vocabulary verbatim where the bullet supports it.
-- Respect attribution rigorously. Personally-built bullets may say "personally built / designed / wrote"; directed_team_reviewed bullets must say "directed / led / reviewed and approved"; led_org bullets must say "led" or "managed".
+- Summary paragraph: short, hits the JD's vocabulary where backed by evidence. Use Achievements DB as the source of truth.
+- Professional Experience: roles in reverse-chronological order from `roles`. Each role: company (bold), title and dates (italics), then 3-7 bullet points pulled from achievements (filtered by role_id, ordered by relevance to the JD). Use the JD's vocabulary verbatim where the achievement text supports it; do not invent new facts.
+- Respect attribution rigorously. The achievement's `attribution` field is non-negotiable:
+    personally_built       -> "Built / Designed / Wrote / Implemented" (no qualifier)
+    directed_team_reviewed -> "Directed the team that built / Reviewed and approved" (do NOT use "personally" prefix)
+    led_org                -> "Led" / "Managed"
+    co_led                 -> "Co-led"
+    co_author              -> "Co-author on" / "Co-authored"
+    contributed            -> "Contributed to"
+    partnered_external     -> "Partnered with X on"
+  Do NOT spray the word "Personally" onto bullets that are not personally_built.
 - Honor profile.constraints.forbidden_patterns.
-- Selected Publications section pulled directly from library.publications.
-- Education section if present in library or profile.
+- Do not use em-dashes (—) anywhere in the resume, including header separators. Use spaces, commas, or pipes (|) instead. En-dashes (–) in date ranges are fine.
+- Selected Publications section from `publications`. Cite each as the publications[].citation.
+- Education section from `education`.
 - No content from honest_gaps.
 """
 
@@ -63,13 +82,38 @@ def _stringify(text: str) -> str:
     return cleaned.strip()
 
 
+def _strip_em_dashes(text: str) -> str:
+    """Replace em-dashes with safer alternatives.
+
+    Heuristic: on markdown header / role / publication-citation lines (lines
+    that include bold/italic markers), use a pipe (`|`) as the separator. In
+    prose, use a comma. En-dashes between dates (e.g. "2023 – 2026") are kept
+    because they are conventional and not an LLM tell.
+    """
+    out_lines: list[str] = []
+    for line in text.splitlines():
+        if "—" not in line:
+            out_lines.append(line)
+            continue
+        is_structured = ("**" in line) or (line.lstrip().startswith("#"))
+        if is_structured:
+            line = line.replace(" — ", " | ")
+        else:
+            line = line.replace(" — ", ", ")
+        # Any remaining em-dashes (no spaces around them) get a comma.
+        line = line.replace("—", ",")
+        out_lines.append(line)
+    return "\n".join(out_lines)
+
+
 def _common_user(
     *,
     jd_text: str,
     requirements: dict,
     mapping: dict,
-    library_yaml: str,
+    achievements_json: str,
     profile_yaml: str,
+    library_yaml: str,
     extra_context: str,
 ) -> str:
     return (
@@ -79,11 +123,13 @@ def _common_user(
         + json.dumps(requirements, indent=2)
         + "\n\nMAPPING (JSON):\n"
         + json.dumps(mapping, indent=2)
-        + "\n\nLIBRARY (YAML):\n"
-        + library_yaml
+        + "\n\nACHIEVEMENTS DB (JSON, AUTHORITATIVE):\n"
+        + achievements_json
         + "\n\nUSER PROFILE (YAML):\n"
         + profile_yaml
-        + "\n\nEXTRA CONTEXT (free text, may be empty):\n"
+        + "\n\nSUPPLEMENTARY LIBRARY (voice samples only):\n"
+        + (library_yaml or "(none)")
+        + "\n\nEXTRA CONTEXT:\n"
         + (extra_context or "(none)")
     )
 
@@ -93,8 +139,9 @@ def draft_cover_letter(
     jd_text: str,
     requirements: dict,
     mapping: dict,
-    library_yaml: str,
+    achievements_json: str,
     profile_yaml: str,
+    library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
 ) -> str:
@@ -102,12 +149,13 @@ def draft_cover_letter(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=library_yaml,
+        achievements_json=achievements_json,
         profile_yaml=profile_yaml,
+        library_yaml=library_yaml,
         extra_context=extra_context,
     )
     raw = call(system=COVER_SYSTEM, user=user, cache_system=False, model=model, max_tokens=4000)
-    return _stringify(raw)
+    return _strip_em_dashes(_stringify(raw))
 
 
 def draft_resume(
@@ -115,8 +163,9 @@ def draft_resume(
     jd_text: str,
     requirements: dict,
     mapping: dict,
-    library_yaml: str,
+    achievements_json: str,
     profile_yaml: str,
+    library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
 ) -> str:
@@ -124,9 +173,10 @@ def draft_resume(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=library_yaml,
+        achievements_json=achievements_json,
         profile_yaml=profile_yaml,
+        library_yaml=library_yaml,
         extra_context=extra_context,
     )
     raw = call(system=RESUME_SYSTEM, user=user, cache_system=False, model=model, max_tokens=6000)
-    return _stringify(raw)
+    return _strip_em_dashes(_stringify(raw))

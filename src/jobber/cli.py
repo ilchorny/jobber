@@ -13,8 +13,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from . import achievements as ach_mod
 from . import draft as draft_mod
-from . import extract, jd, library, profile, render, report
+from . import extract as extract_mod
+from . import jd, library, profile, render, report
 from .llm import LLMConfig
 
 app = typer.Typer(
@@ -87,6 +89,11 @@ def init(
         profile.write_template()
         console.print("[green]Wrote[/green] empty profile.yaml template at " f"{profile.profile_path()}")
 
+    # Always create an empty achievements.json template if missing. This is the
+    # authoritative store; users populate it via `jobber extract` or by hand.
+    ap = ach_mod.write_empty_template()
+    console.print(f"[green]Achievements DB[/green] at {ap}")
+
     if library_path is not None:
         library_path = library_path.expanduser().resolve()
         if not library_path.exists():
@@ -128,26 +135,35 @@ def apply(
         None, "--draft-model", help="Override the LLM used for final drafting."
     ),
 ):
-    """Run the full pipeline: JD → mapping → cover letter + resume + report → PDFs."""
+    """Run the full pipeline: JD -> mapping -> cover letter + resume + report -> PDFs."""
     profile.ensure_home()
 
-    console.print("[bold]1.[/bold] Ingesting JD…")
+    console.print("[bold]1.[/bold] Ingesting JD...")
     jd_text = jd.ingest(jd_input)
     if not jd_text.strip():
         console.print("[red]Empty JD.[/red]")
         raise typer.Exit(2)
 
-    console.print("[bold]2.[/bold] Indexing your library…")
-    idx = library.build_index()
-    if not idx.roles:
+    console.print("[bold]2.[/bold] Loading achievements database...")
+    achievements = ach_mod.load()
+    if not achievements.get("achievements"):
         console.print(
-            "[yellow]Library index is empty.[/yellow] Add files to "
-            f"{profile.home_dir() / 'library'} and re-run."
+            "[yellow]Achievements DB is empty.[/yellow] Run `jobber extract` to bootstrap "
+            f"it from {profile.home_dir() / 'library'}, or populate "
+            f"{ach_mod.db_path()} by hand."
         )
         raise typer.Exit(2)
 
-    console.print("[bold]3.[/bold] Extracting requirements…")
-    requirements = extract.extract(jd_text)
+    console.print("[bold]3.[/bold] Indexing library (supplementary voice context)...")
+    try:
+        idx = library.build_index()
+        library_yaml = idx.as_prompt_yaml() if idx.roles else ""
+    except Exception as exc:
+        console.print(f"[yellow]Library indexing skipped:[/yellow] {exc}")
+        library_yaml = ""
+
+    console.print("[bold]4.[/bold] Extracting requirements...")
+    requirements = extract_mod.extract(jd_text)
     company = (requirements.get("company") or "unknown").strip()
     role_title = (requirements.get("role_title") or "role").strip()
     app_id = _app_id(company, role_title)
@@ -158,56 +174,60 @@ def apply(
     if context:
         (out_dir / "context.md").write_text(context.strip() + "\n")
 
-    console.print(f"[bold]4.[/bold] Mapping requirements to evidence…  ({app_id})")
+    console.print(f"[bold]5.[/bold] Mapping requirements to achievements...  ({app_id})")
     prof = profile.load()
-    mapping = draft_mod.__dict__  # placeholder so linter doesn't whine; replaced below
     from . import map as map_mod
+    achievements_json = ach_mod.as_prompt_json(achievements)
     mapping = map_mod.build_mapping(
         requirements=requirements,
-        library_yaml=idx.as_prompt_yaml(),
+        achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        library_yaml=library_yaml,
         extra_context=context,
     )
     (out_dir / "mapping.json").write_text(json.dumps(mapping, indent=2))
 
-    console.print("[bold]5.[/bold] Writing mapping report…")
+    console.print("[bold]6.[/bold] Writing mapping report...")
     rep_md = report.write_report(
         company=company,
         role_title=role_title,
         requirements=requirements,
         mapping=mapping,
+        achievements=achievements,
     )
     (out_dir / "mapping_report.md").write_text(rep_md)
 
     cfg = LLMConfig()
     draft_m = draft_model or cfg.draft_model
 
-    console.print("[bold]6.[/bold] Drafting cover letter…")
+    console.print("[bold]7.[/bold] Drafting cover letter...")
     cover = draft_mod.draft_cover_letter(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=idx.as_prompt_yaml(),
+        achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
     )
     (out_dir / "cover_letter.md").write_text(cover + "\n")
 
-    console.print("[bold]7.[/bold] Drafting resume…")
+    console.print("[bold]8.[/bold] Drafting resume...")
     res = draft_mod.draft_resume(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=idx.as_prompt_yaml(),
+        achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
     )
     (out_dir / "resume.md").write_text(res + "\n")
 
     if not no_pdf:
-        console.print("[bold]8.[/bold] Rendering PDFs…")
+        console.print("[bold]9.[/bold] Rendering PDFs...")
         for name in ("cover_letter", "resume", "mapping_report"):
             md = out_dir / f"{name}.md"
             pdf = out_dir / f"{name}.pdf"
@@ -278,15 +298,22 @@ def draft(
     jd_text = (out_dir / "jd.md").read_text() if (out_dir / "jd.md").exists() else ""
     context = (out_dir / "context.md").read_text() if (out_dir / "context.md").exists() else ""
 
-    idx = library.build_index()
+    achievements = ach_mod.load()
+    achievements_json = ach_mod.as_prompt_json(achievements)
+    try:
+        idx = library.build_index()
+        library_yaml = idx.as_prompt_yaml() if idx.roles else ""
+    except Exception:
+        library_yaml = ""
     prof = profile.load()
 
     cover = draft_mod.draft_cover_letter(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=idx.as_prompt_yaml(),
+        achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
     )
@@ -296,8 +323,9 @@ def draft(
         jd_text=jd_text,
         requirements=requirements,
         mapping=mapping,
-        library_yaml=idx.as_prompt_yaml(),
+        achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
     )
@@ -319,6 +347,44 @@ def render_cmd(app_id: str = typer.Argument(...)):
             console.print(f"[green]wrote[/green] {pdf}")
         except Exception as exc:
             console.print(f"[yellow]skipped[/yellow] {pdf}: {exc}")
+
+
+@app.command()
+def extract(
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Replace an existing achievements.json. By default, the command refuses to clobber non-empty data."
+    ),
+):
+    """Read your library folder and produce a draft achievements.json.
+
+    The output is meant for human review and editing. Run this once when you set
+    jobber up, and again whenever you add new material to the library.
+    """
+    profile.ensure_home()
+    existing = ach_mod.load()
+    if existing.get("achievements") and not overwrite:
+        console.print(
+            f"[yellow]Refusing to overwrite[/yellow] non-empty {ach_mod.db_path()}. "
+            "Pass --overwrite to replace, or edit the file by hand."
+        )
+        raise typer.Exit(2)
+
+    prof = profile.load()
+    console.print(f"Reading library at {profile.home_dir() / 'library'}...")
+    data = ach_mod.extract_from_library(profile_yaml=prof.as_yaml())
+    problems = ach_mod.validate(data)
+    if problems:
+        console.print(f"[yellow]Validation warnings:[/yellow]")
+        for p in problems:
+            console.print(f"  - {p}")
+    path = ach_mod.save(data)
+    n_roles = len(data.get("roles") or [])
+    n_ach = len(data.get("achievements") or [])
+    n_pub = len(data.get("publications") or [])
+    console.print(
+        f"[green]Wrote[/green] {path}: {n_roles} roles, {n_ach} achievements, "
+        f"{n_pub} publications. Review and edit by hand before your next `jobber apply`."
+    )
 
 
 @app.command(name="claude-install")

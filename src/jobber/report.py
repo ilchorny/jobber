@@ -10,12 +10,19 @@ def write_report(
     role_title: str,
     requirements: dict,
     mapping: dict,
+    achievements: dict | None = None,
     profile_summary: str = "",
 ) -> str:
     """Return a Markdown mapping report."""
     today = date.today().isoformat()
+    ach_by_id: dict[str, dict] = {}
+    if achievements:
+        for a in achievements.get("achievements") or []:
+            if a.get("id"):
+                ach_by_id[a["id"]] = a
+
     out: list[str] = []
-    out.append(f"# JD → Resume / Cover Letter Mapping Report\n")
+    out.append("# JD to Resume / Cover Letter Mapping Report\n")
     out.append(f"**Role:** {role_title or '(unspecified)'}  ")
     out.append(f"**Company:** {company or '(unspecified)'}  ")
     out.append(f"**Date:** {today}\n")
@@ -40,21 +47,19 @@ def write_report(
 
     # 2. Evidence mapping
     out.append("## 2. Evidence Mapping\n")
-    out.append("| JD ID | Requirement | Evidence | Fit | In Cover Letter | In Resume |")
+    out.append("| JD ID | Requirement | Evidence (achievement id, attribution, text) | Fit | In CL | In Resume |")
     out.append("|---|---|---|---|---|---|")
     for m in mapping.get("mappings", []):
         rid = m.get("requirement_id", "?")
         rtext = (m.get("requirement_text") or "")[:140].replace("|", "\\|")
         ev_parts = []
         for ev in m.get("evidence", []) or []:
-            role = ev.get("role_id", "")
-            bullet = (ev.get("bullet_text") or "").replace("|", "\\|")
+            aid = ev.get("achievement_id") or ev.get("role_id", "")
             attr = ev.get("attribution", "")
-            if role:
-                ev_parts.append(f"**{role}** ({attr}): {bullet}")
-            else:
-                ev_parts.append(f"({attr}): {bullet}")
-        ev_str = "<br>".join(ev_parts) or "—"
+            ach = ach_by_id.get(aid or "", {})
+            text = (ach.get("text") or ev.get("bullet_text") or "")[:200].replace("|", "\\|")
+            ev_parts.append(f"`{aid}` ({attr}): {text}")
+        ev_str = "<br>".join(ev_parts) or "(none)"
         fit = m.get("fit", "")
         cl = "Yes" if m.get("include_in_cover_letter") else "No"
         rs = "Yes" if m.get("include_in_resume") else "No"

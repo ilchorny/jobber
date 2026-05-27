@@ -107,7 +107,7 @@ def _call_claude_cli(
     system: str,
     user: str,
     model: str,
-    timeout: int = 600,
+    timeout: int = 1800,
 ) -> str:
     """Invoke the `claude` CLI in non-interactive mode.
 
@@ -129,14 +129,21 @@ def _call_claude_cli(
         "--append-system-prompt",
         system,
     ]
-    proc = subprocess.run(
-        cmd,
-        input=user,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        cwd=_NEUTRAL_CWD,
-    )
+    try:
+        proc = subprocess.run(
+            cmd,
+            input=user,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=_NEUTRAL_CWD,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"claude CLI exceeded {timeout}s timeout. The input may be too large "
+            "for a single call; consider chunking. To raise the ceiling, set "
+            "JOBBER_CLAUDE_TIMEOUT in the environment."
+        ) from exc
     if proc.returncode != 0:
         stderr_tail = (proc.stderr or "").strip().splitlines()[-10:]
         raise RuntimeError(
@@ -165,7 +172,8 @@ def call(
     backend = resolved_backend()
 
     if backend == "claude-cli":
-        return _call_claude_cli(system=system, user=user, model=chosen_model)
+        timeout = int(os.environ.get("JOBBER_CLAUDE_TIMEOUT", "1800"))
+        return _call_claude_cli(system=system, user=user, model=chosen_model, timeout=timeout)
 
     return _call_anthropic_api(
         system=system,

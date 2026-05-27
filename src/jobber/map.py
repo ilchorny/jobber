@@ -7,13 +7,17 @@ from .llm import call
 
 
 SYSTEM = """\
-You map each JD requirement to evidence from the user's library.
+You map each JD requirement to evidence from the user's achievements database.
 
 You will receive:
   1. A JD requirements JSON (responsibilities, required quals, preferred quals).
-  2. A library index in YAML (roles, publications, personal_projects).
+  2. An achievements database JSON (roles, achievements, publications, patents, education).
+     This is the AUTHORITATIVE source for every bullet you may use. Each achievement
+     has an `id`, a `role_id`, a `text`, an `attribution`, and `keywords`.
   3. A user profile in YAML (voice rules, attribution overrides, stretches_to_avoid).
-  4. Optional extra context the user provided about this application.
+  4. Optional supplementary library context (past resumes/cover letters/JDs). Useful for
+     voice signals but NOT for new facts.
+  5. Optional extra context the user provided about this application.
 
 Output ONLY valid JSON with this shape:
 
@@ -27,9 +31,8 @@ Output ONLY valid JSON with this shape:
       "fit": "strong | moderate | weak | none",
       "evidence": [
         {
-          "role_id": "",                # from library index, or ""
-          "bullet_text": "",             # quoted from library (may be lightly tightened)
-          "attribution": "personally_built | directed_team_reviewed | led_org | co_author | participant"
+          "achievement_id": "",        # MUST match an entry in achievements[].id
+          "attribution": ""             # MUST match achievements[].attribution for that id
         }
       ],
       "include_in_cover_letter": true,
@@ -39,8 +42,8 @@ Output ONLY valid JSON with this shape:
   ],
   "honest_gaps": [
     {
-      "keyword": "",                    # e.g. "methylation"
-      "reason": ""                      # e.g. "Not in the user's background per profile.stretches_to_avoid"
+      "keyword": "",
+      "reason": ""
     }
   ],
   "thesis_candidates": [
@@ -49,10 +52,18 @@ Output ONLY valid JSON with this shape:
 }
 
 Rules:
-- Use ONLY evidence that appears in the library index. Do not invent bullets or roles.
-- Respect attribution rigorously. If the profile says a project was directed_team_reviewed, do not present it as personally_built.
-- For each JD keyword that is also in profile.stretches_to_avoid, add an entry to honest_gaps and set fit to "none" for any responsibility that depends on it.
-- Default include_in_resume=true for any "strong" or "moderate" match. include_in_cover_letter=true for the top 5-8 strongest matches.
+- Evidence references MUST be by achievement_id. Do NOT paste bullet text into evidence
+  entries: the drafter will look up the text from the achievements DB by id.
+- Do not invent achievements. If no matching achievement exists for a JD requirement,
+  return an empty evidence list and fit="none" (or "weak" with stretch_notes).
+- Attribution in your evidence entries MUST mirror the achievement's stored attribution.
+  Never escalate (e.g., do not relabel a directed_team_reviewed achievement as
+  personally_built). If you disagree with stored attribution, do not change it here;
+  flag it in stretch_notes.
+- For each JD keyword that is also in profile.stretches_to_avoid, add it to honest_gaps
+  and set fit="none" for any responsibility that depends on it.
+- Default include_in_resume=true for "strong" or "moderate" matches. include_in_cover_letter=true
+  for the 5-8 strongest matches.
 - Produce 2-3 thesis_candidates anchored in the strongest matches.
 """
 
@@ -60,18 +71,21 @@ Rules:
 def build_mapping(
     *,
     requirements: dict,
-    library_yaml: str,
+    achievements_json: str,
     profile_yaml: str,
+    library_yaml: str = "",
     extra_context: str = "",
 ) -> dict:
     user = (
         "JD REQUIREMENTS (JSON):\n"
         + json.dumps(requirements, indent=2)
-        + "\n\nLIBRARY (YAML):\n"
-        + library_yaml
+        + "\n\nACHIEVEMENTS DB (JSON, AUTHORITATIVE):\n"
+        + achievements_json
         + "\n\nUSER PROFILE (YAML):\n"
         + profile_yaml
-        + "\n\nEXTRA CONTEXT (free text, may be empty):\n"
+        + "\n\nSUPPLEMENTARY LIBRARY CONTEXT (voice samples; not authoritative for new facts):\n"
+        + (library_yaml or "(none)")
+        + "\n\nEXTRA CONTEXT (free text):\n"
         + (extra_context or "(none)")
     )
     raw = call(system=SYSTEM, user=user, cache_system=False, max_tokens=12000)
