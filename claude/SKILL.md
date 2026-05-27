@@ -66,20 +66,43 @@ If it fails with "ANTHROPIC_API_KEY is not set" AND `claude` is not on PATH, the
 
 ## Google Drive libraries
 
-The `jobber init --library` flag wants a local filesystem path. If the user's past materials live in a Google Drive folder and they ask you to "use" or "point jobber at" that folder, do this:
+**The CLI is filesystem-only by design**: the standalone `jobber` subprocess has no MCP access, so it cannot fetch from Google Drive. The MCP belongs to your Claude Code session, not to the CLI. *You* (the in-session assistant) handle the Drive sync; the CLI sees only local paths.
 
-1. Pick or create a local destination, e.g. `~/jobber-library/`. Make the subfolders `resumes/`, `cover_letters/`, `jds/`, `notes/` if they don't exist.
-2. If the Google Drive MCP is available in the current session (look for tools like `mcp__claude_ai_Google_Drive__search_files`, `mcp__claude_ai_Google_Drive__read_file_content`, `mcp__claude_ai_Google_Drive__download_file_content`), use it to:
-   - List the folder contents (`search_files` with `parentId = '<folder-id>'`).
-   - Download each relevant file (resumes, cover letters, JDs, notes) into the appropriate local subfolder. Skip files that are clearly not job-search material (tax docs, photos, unrelated PDFs).
-   - Confirm the file count with the user before proceeding.
-3. Then call:
+### When to intercept
+
+Intercept whenever the user gives you a Google Drive folder URL or folder ID in the context of `jobber init --library` (or "point jobber at my Drive folder"). Recognizable signals:
+
+- A URL containing `drive.google.com` or `docs.google.com`.
+- A bare folder ID like `1MutdFlSIjp_26ZBNjBjsphQLZjzpgNu8` (alphanumeric ID, typically 25–44 chars, no slashes, given in a context where a folder is meant).
+- The user saying "my Google Drive folder" without giving a local path.
+
+If the Google Drive MCP is NOT available in this session (no `mcp__claude_ai_Google_Drive__*` tools), tell the user you can't sync and offer the manual `gdrive` / `rclone` / Drive UI download path.
+
+### The intercept procedure
+
+1. **Pick the local destination.** Default `~/jobber-library/`. If the directory already exists and contains files the user may want to keep, ask before overwriting. Create the standard subfolders: `resumes/`, `cover_letters/`, `jds/`, `notes/`.
+2. **List the Drive folder** with `mcp__claude_ai_Google_Drive__search_files` and a query like `parentId = '<folder-id>'`. Page through results if the folder is large.
+3. **Classify each file before downloading.** A simple heuristic:
+   - filename matches `*resume*` / `*cv*` / `*CV*` → `resumes/`
+   - filename matches `*cover*letter*` → `cover_letters/`
+   - filename contains a JD-shaped marker (`*jd*`, `*job_description*`, `*JD*`) → `jds/`
+   - interview prep, notes, fact cards → `notes/`
+   - obviously non-job-search material (taxes, photos, financial reports, audio/video, signed contracts that aren't employment-related) → skip
+4. **Show the planned file list to the user before downloading.** They should confirm the classification and skip list. For large folders, summarize counts per bucket and offer to download a subset.
+5. **Download** the approved set via `mcp__claude_ai_Google_Drive__download_file_content` (binary) or `mcp__claude_ai_Google_Drive__read_file_content` (for native Google Docs/Sheets, which need a different code path). Write each file into the correct local subfolder, preserving the original filename.
+6. **Then call the CLI** with the local path:
 
    ```bash
    jobber init --library ~/jobber-library
    jobber extract
    ```
 
-Do NOT pass a Drive URL or Drive folder ID directly to `jobber init --library`. The CLI will reject it because the standalone jobber process has no Drive access. The MCP belongs to your session, not to the CLI subprocess.
+7. **Surface what landed**: count and names of files per bucket, anything skipped, and the resulting achievements-DB summary from `jobber extract`.
 
-If the user wants the library to stay in sync with Drive over time, surface that as a manual step for now: re-run the MCP-driven sync, then `jobber finalize <app-id> --refresh-db` or `jobber extract --overwrite` to refresh the achievements DB.
+### What to do if the user passes a Drive URL to `jobber init --library` literally
+
+The CLI will reject it with a clear error. Do NOT just relay that error to the user — that's a failure of orchestration. Instead, on seeing the rejection, run the intercept procedure above and re-invoke `jobber init --library <local-path>` for them.
+
+### Ongoing sync
+
+If the user wants the library to stay in sync with Drive over time, that is a manual `jobber sync` they request. There is no automatic poll. After re-syncing, run `jobber extract --overwrite` (or `jobber finalize <app-id> --refresh-db`) to fold the new material into the achievements DB.
