@@ -18,6 +18,7 @@ from . import draft as draft_mod
 from . import extract as extract_mod
 from . import jd, library, profile, render, report
 from . import review as review_mod
+from . import tone as tone_mod
 from .llm import LLMConfig
 
 app = typer.Typer(
@@ -213,6 +214,8 @@ def apply(
 
     console.print(f"[bold]5.[/bold] Mapping requirements to achievements...  ({app_id})")
     prof = profile.load()
+    tone_data = tone_mod.load()
+    tone_text = tone_mod.as_prompt_text(tone_data)
     from . import map as map_mod
     achievements_json = ach_mod.as_prompt_json(achievements)
     mapping = map_mod.build_mapping(
@@ -244,6 +247,7 @@ def apply(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
@@ -257,6 +261,7 @@ def apply(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
@@ -337,6 +342,7 @@ def draft(
 
     achievements = ach_mod.load()
     achievements_json = ach_mod.as_prompt_json(achievements)
+    tone_text = tone_mod.as_prompt_text(tone_mod.load())
     try:
         idx = library.build_index()
         library_yaml = idx.as_prompt_yaml() if idx.roles else ""
@@ -350,6 +356,7 @@ def draft(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
@@ -362,6 +369,7 @@ def draft(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
@@ -422,6 +430,25 @@ def extract(
         f"[green]Wrote[/green] {path}: {n_roles} roles, {n_ach} achievements, "
         f"{n_pub} publications. Review and edit by hand before your next `jobber apply`."
     )
+
+    # Also extract a tone profile from past cover letters so the drafter speaks
+    # in the user's voice rather than a generic professional register.
+    console.print()
+    console.print("Extracting tone profile from past cover letters...")
+    tone_data = tone_mod.extract_from_library()
+    tone_path = tone_mod.save(tone_data)
+    n_openers = len(tone_data.get("openers") or [])
+    n_phrases = len(tone_data.get("recurring_phrases") or [])
+    n_sources = len(tone_data.get("source_files") or [])
+    if n_sources:
+        console.print(
+            f"[green]Wrote[/green] {tone_path} from {n_sources} cover letter(s): "
+            f"{n_openers} openers, {n_phrases} recurring phrases captured."
+        )
+    else:
+        console.print(
+            f"[yellow]No cover letters found in library/cover_letters/; tone profile is empty.[/yellow]"
+        )
 
 
 @app.command()

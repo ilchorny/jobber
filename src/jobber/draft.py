@@ -12,13 +12,15 @@ You draft a cover letter for the candidate. Inputs you receive:
   2. Mapping JSON (requirements -> achievement_id with fit ratings, thesis_candidates)
   3. Achievements DB JSON (AUTHORITATIVE source of every bullet you may reference)
   4. User profile YAML (voice rules, constraints, attribution overrides)
-  5. Optional supplementary library context (voice samples only)
-  6. Optional extra context
+  5. Tone profile (AUTHORITATIVE voice guidance extracted from the user's past letters)
+  6. Optional supplementary library context (voice samples only)
+  7. Optional extra context
 
 Output ONLY the cover letter in Markdown. Nothing else. No preamble, no explanation, no code fences.
 
 General rules:
-- Use the candidate's voice as described in profile.voice.cover_letter.
+- VOICE: the tone profile is authoritative. Match its `tone_descriptor`, `sentence_rhythm`, and `vocabulary_notes`. Use the quoted `openers` / `section_pivots` / `closers` patterns (or compose ones that sound the same). Weave in `recurring_phrases` where the context fits naturally. Treat `things_avoided` as a strict do-not-use list. Do NOT fall back on generic "professional cover letter" register if the tone profile contradicts it.
+- profile.voice.cover_letter still applies for things the tone profile does not cover.
 - Honor every entry in profile.constraints.forbidden_patterns (e.g. "no em-dashes" -> use periods/colons/commas instead).
 - Do not use em-dashes (—) in any context, including title formatting. Use commas, periods, or pipes (|) instead. (An ASCII hyphen-minus is fine; an en-dash – is fine for date ranges only.)
 - Look up each evidence entry by achievement_id in the Achievements DB. Use the achievement's `text`, and shape your language around its `attribution`:
@@ -113,6 +115,7 @@ def _common_user(
     mapping: dict,
     achievements_json: str,
     profile_yaml: str,
+    tone_text: str,
     library_yaml: str,
     extra_context: str,
 ) -> str:
@@ -127,6 +130,8 @@ def _common_user(
         + achievements_json
         + "\n\nUSER PROFILE (YAML):\n"
         + profile_yaml
+        + "\n\nTONE PROFILE (AUTHORITATIVE voice guidance):\n"
+        + (tone_text or "(no tone profile yet)")
         + "\n\nSUPPLEMENTARY LIBRARY (voice samples only):\n"
         + (library_yaml or "(none)")
         + "\n\nEXTRA CONTEXT:\n"
@@ -141,6 +146,7 @@ def draft_cover_letter(
     mapping: dict,
     achievements_json: str,
     profile_yaml: str,
+    tone_text: str = "",
     library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
@@ -151,6 +157,7 @@ def draft_cover_letter(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=profile_yaml,
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=extra_context,
     )
@@ -165,6 +172,7 @@ def draft_resume(
     mapping: dict,
     achievements_json: str,
     profile_yaml: str,
+    tone_text: str = "",
     library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
@@ -175,6 +183,7 @@ def draft_resume(
         mapping=mapping,
         achievements_json=achievements_json,
         profile_yaml=profile_yaml,
+        tone_text=tone_text,
         library_yaml=library_yaml,
         extra_context=extra_context,
     )

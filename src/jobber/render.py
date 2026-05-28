@@ -7,6 +7,7 @@ in their own binary.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -61,19 +62,39 @@ def md_to_pdf(
         tmp.write(html)
         html_path = Path(tmp.name)
 
+    # Isolated profile dir prevents lock contention with the user's running Chrome.
+    user_data_dir = Path(tempfile.mkdtemp(prefix="jobber-chrome-"))
+
+    cmd = [
+        _resolve_chrome(chrome_path),
+        "--headless",
+        "--disable-gpu",
+        "--no-pdf-header-footer",
+        f"--user-data-dir={user_data_dir}",
+        f"--print-to-pdf={pdf_path}",
+        f"file://{html_path}",
+    ]
     try:
-        subprocess.run(
-            [
-                _resolve_chrome(chrome_path),
-                "--headless",
-                "--disable-gpu",
-                "--no-pdf-header-footer",
-                f"--print-to-pdf={pdf_path}",
-                f"file://{html_path}",
-            ],
-            check=True,
-            capture_output=True,
-        )
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, timeout=15)
+        except subprocess.TimeoutExpired:
+            # Chrome's headless --print-to-pdf is known to write the PDF correctly
+            # and then hang on shutdown. Accept the run if the file is a valid PDF.
+            if not _pdf_complete(pdf_path):
+                raise
     finally:
         html_path.unlink(missing_ok=True)
+        shutil.rmtree(user_data_dir, ignore_errors=True)
     return pdf_path
+
+
+def _pdf_complete(pdf_path: Path) -> bool:
+    """A well-formed PDF ends with the %%EOF marker (within the last 1KB)."""
+    try:
+        with open(pdf_path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - 1024))
+            return b"%%EOF" in fh.read()
+    except OSError:
+        return False

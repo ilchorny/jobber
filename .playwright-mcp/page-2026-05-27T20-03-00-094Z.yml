@@ -1,0 +1,419 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading [level=1]
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - button "English" [ref=e16] [cursor=pointer]:
+            - generic [ref=e20]: English
+          - button "Sign In" [ref=e22] [cursor=pointer]:
+            - generic [ref=e27]: Sign In
+        - navigation [ref=e28]:
+          - button "Careers Home" [ref=e29] [cursor=pointer]
+          - button "Search for Jobs" [ref=e30] [cursor=pointer]
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - search [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - textbox "Search" [ref=e43]:
+              - /placeholder: Search for jobs or keywords
+              - text: principal
+            - button "Reset Search Input" [ref=e44] [cursor=pointer]
+          - status [ref=e48]
+        - button "Search" [ref=e51] [cursor=pointer]
+      - group "Filters" [ref=e52]:
+        - generic [ref=e53]: Filters
+        - button "Location" [ref=e55] [cursor=pointer]: Location
+        - button "Time Type" [ref=e60] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e65] [cursor=pointer]: Job Category
+        - button "More" [ref=e70] [cursor=pointer]: More
+      - group "Filters Applied" [ref=e75]:
+        - generic [ref=e76]: Filters Applied
+        - list [ref=e77]:
+          - listitem [ref=e78]:
+            - 'button "Search: \"principal\" clear filter" [ref=e79]': "Search: \"principal\""
+          - listitem [ref=e83]:
+            - button "Clear All (1)" [ref=e85] [cursor=pointer]:
+              - generic [ref=e86]: Clear All (1)
+    - generic [ref=e87]:
+      - alert [ref=e88]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e89]:
+        - paragraph [ref=e90]: 32 JOBS FOUND
+        - button "Jump to selected job details" [ref=e91] [cursor=pointer]:
+          - generic [ref=e92]: Jump to selected job details
+        - list "Page 1 of 2" [ref=e93]:
+          - listitem [ref=e94]:
+            - heading "Principal Deep Learning/AI Engineer, Bioinformatics" [level=3] [ref=e98]:
+              - link "Principal Deep Learning/AI Engineer, Bioinformatics" [ref=e99] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Principal-Deep-Learning-AI-Engineer--Bioinformatics_42597-JOB-1?q=principal
+            - generic [ref=e108]:
+              - term [ref=e109]: locations
+              - definition [ref=e110]: US - California - San Diego
+            - generic [ref=e120]:
+              - term [ref=e121]: posted on
+              - definition [ref=e122]: Posted 30+ Days Ago
+            - list [ref=e123]:
+              - listitem [ref=e124]: 42597-JOB
+          - listitem [ref=e125]:
+            - heading "SAP Principal Enterprise Architect, S/4HANA & Digital Platforms" [level=3] [ref=e129]:
+              - link "SAP Principal Enterprise Architect, S/4HANA & Digital Platforms" [ref=e130] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Enterprise-Architect---SAP-S-4HANA---Digital-Enterprise-Platforms_42301-JOB-1?q=principal
+            - generic [ref=e139]:
+              - term [ref=e140]: locations
+              - definition [ref=e141]: US - California - San Diego
+            - generic [ref=e151]:
+              - term [ref=e152]: posted on
+              - definition [ref=e153]: Posted 30+ Days Ago
+            - list [ref=e154]:
+              - listitem [ref=e155]: 42301-JOB
+          - listitem [ref=e156]:
+            - heading "Sr Facilities Engineer" [level=3] [ref=e160]:
+              - link "Sr Facilities Engineer" [ref=e161] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthTech/Sr-Facilities-Engineer_42904-JOB?q=principal
+            - generic [ref=e170]:
+              - term [ref=e171]: locations
+              - definition [ref=e172]: Singapore - Woodlands - NorthTech
+            - generic [ref=e182]:
+              - term [ref=e183]: posted on
+              - definition [ref=e184]: Posted Yesterday
+            - list [ref=e185]:
+              - listitem [ref=e186]: 42904-JOB
+          - listitem [ref=e187]:
+            - heading "IT Architect - SAP Finance" [level=3] [ref=e191]:
+              - link "IT Architect - SAP Finance" [ref=e192] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---Remote/Senior-Manager---IT---SAP-Finance_40615-JOB-1?q=principal
+            - generic [ref=e201]:
+              - term [ref=e202]: locations
+              - definition [ref=e203]: 2 Locations
+            - generic [ref=e213]:
+              - term [ref=e214]: posted on
+              - definition [ref=e215]: Posted 30+ Days Ago
+            - list [ref=e216]:
+              - listitem [ref=e217]: 40615-JOB
+          - listitem [ref=e218]:
+            - heading "JOB Associate Director, Operational Excellence" [level=3] [ref=e222]:
+              - link "JOB Associate Director, Operational Excellence" [ref=e223] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/JOB-Associate-Director--Operational-Excellence_42503-JOB?q=principal
+            - generic [ref=e232]:
+              - term [ref=e233]: locations
+              - definition [ref=e234]: US - California - San Diego
+            - generic [ref=e244]:
+              - term [ref=e245]: posted on
+              - definition [ref=e246]: Posted 30+ Days Ago
+            - list [ref=e247]:
+              - listitem [ref=e248]: 42503-JOB
+          - listitem [ref=e249]:
+            - heading "Enterprise AI Architect" [level=3] [ref=e253]:
+              - link "Enterprise AI Architect" [ref=e254] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Enterprise-AI-Architect_42546-JOB-1?q=principal
+            - generic [ref=e263]:
+              - term [ref=e264]: locations
+              - definition [ref=e265]: US - California - San Diego
+            - generic [ref=e275]:
+              - term [ref=e276]: posted on
+              - definition [ref=e277]: Posted 30+ Days Ago
+            - list [ref=e278]:
+              - listitem [ref=e279]: 42546-JOB
+          - listitem [ref=e280]:
+            - heading "Vice President, Finance- Commercial" [level=3] [ref=e284]:
+              - link "Vice President, Finance- Commercial" [ref=e285] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Vice-President--Finance--Commercial_42312-JOB?q=principal
+            - generic [ref=e294]:
+              - term [ref=e295]: locations
+              - definition [ref=e296]: US - California - San Diego
+            - generic [ref=e306]:
+              - term [ref=e307]: posted on
+              - definition [ref=e308]: Posted 30+ Days Ago
+            - list [ref=e309]:
+              - listitem [ref=e310]: 42312-JOB
+          - listitem [ref=e311]:
+            - heading "Senior Clinical Informatics Sales Specialist, Pacific" [level=3] [ref=e315]:
+              - link "Senior Clinical Informatics Sales Specialist, Pacific" [ref=e316] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---Southern---Remote/Senior-Clinical-Informatics-Sales-Specialist--West_41151-JOB?q=principal
+            - generic [ref=e325]:
+              - term [ref=e326]: locations
+              - definition [ref=e327]: 2 Locations
+            - generic [ref=e337]:
+              - term [ref=e338]: posted on
+              - definition [ref=e339]: Posted 30+ Days Ago
+            - list [ref=e340]:
+              - listitem [ref=e341]: 41151-JOB
+          - listitem [ref=e342]:
+            - heading "Senior Research Informatics Sales Specialist, Pacific" [level=3] [ref=e346]:
+              - link "Senior Research Informatics Sales Specialist, Pacific" [ref=e347] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---Northern---Remote/Senior-Research-Informatics-Sales-Specialist--Pacific_42529-JOB-1?q=principal
+            - generic [ref=e356]:
+              - term [ref=e357]: locations
+              - definition [ref=e358]: 2 Locations
+            - generic [ref=e368]:
+              - term [ref=e369]: posted on
+              - definition [ref=e370]: Posted 30+ Days Ago
+            - list [ref=e371]:
+              - listitem [ref=e372]: 42529-JOB
+          - listitem [ref=e373]:
+            - heading "Senior Scientist – Biophysics" [level=3] [ref=e377]:
+              - link "Senior Scientist – Biophysics" [ref=e378] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Senior-Scientist---Biophysics_42298-JOB?q=principal
+            - generic [ref=e387]:
+              - term [ref=e388]: locations
+              - definition [ref=e389]: US - California - San Diego
+            - generic [ref=e399]:
+              - term [ref=e400]: posted on
+              - definition [ref=e401]: Posted 27 Days Ago
+            - list [ref=e402]:
+              - listitem [ref=e403]: 42298-JOB
+          - listitem [ref=e404]:
+            - heading "Senior Scientist – Biophysics" [level=3] [ref=e408]:
+              - link "Senior Scientist – Biophysics" [ref=e409] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthCoast/Senior-Scientist---Biophysics_41364-JOB?q=principal
+            - generic [ref=e418]:
+              - term [ref=e419]: locations
+              - definition [ref=e420]: Singapore - Woodlands - NorthCoast
+            - generic [ref=e430]:
+              - term [ref=e431]: posted on
+              - definition [ref=e432]: Posted 30+ Days Ago
+            - list [ref=e433]:
+              - listitem [ref=e434]: 41364-JOB
+          - listitem [ref=e435]:
+            - heading "Sr Software Engineer" [level=3] [ref=e439]:
+              - link "Sr Software Engineer" [ref=e440] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthTech/Sr-Software-Engineer_42851-JOB?q=principal
+            - generic [ref=e449]:
+              - term [ref=e450]: locations
+              - definition [ref=e451]: Singapore - Woodlands - NorthTech
+            - generic [ref=e461]:
+              - term [ref=e462]: posted on
+              - definition [ref=e463]: Posted 6 Days Ago
+            - list [ref=e464]:
+              - listitem [ref=e465]: 42851-JOB
+          - listitem [ref=e466]:
+            - heading "Staff Hardware Systems Engineer (Embedded)" [level=3] [ref=e470]:
+              - link "Staff Hardware Systems Engineer (Embedded)" [ref=e471] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Staff-Hardware-Systems-Engineer--Embedded-_42748-JOB-1?q=principal
+            - generic [ref=e480]:
+              - term [ref=e481]: locations
+              - definition [ref=e482]: US - California - San Diego
+            - generic [ref=e492]:
+              - term [ref=e493]: posted on
+              - definition [ref=e494]: Posted 12 Days Ago
+            - list [ref=e495]:
+              - listitem [ref=e496]: 42748-JOB
+          - listitem [ref=e497]:
+            - heading "Product Engineer 2 (Mechanical)" [level=3] [ref=e501]:
+              - link "Product Engineer 2 (Mechanical)" [ref=e502] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthTech/Product-Engineer-2--Mechanical-_42700-JOB?q=principal
+            - generic [ref=e511]:
+              - term [ref=e512]: locations
+              - definition [ref=e513]: Singapore - Woodlands - NorthTech
+            - generic [ref=e523]:
+              - term [ref=e524]: posted on
+              - definition [ref=e525]: Posted 6 Days Ago
+            - list [ref=e526]:
+              - listitem [ref=e527]: 42700-JOB
+          - listitem [ref=e528]:
+            - heading "Software Engineer 2" [level=3] [ref=e532]:
+              - link "Software Engineer 2" [ref=e533] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthTech/Software-Engineer-2_42783-JOB?q=principal
+            - generic [ref=e542]:
+              - term [ref=e543]: locations
+              - definition [ref=e544]: Singapore - Woodlands - NorthTech
+            - generic [ref=e554]:
+              - term [ref=e555]: posted on
+              - definition [ref=e556]: Posted Yesterday
+            - list [ref=e557]:
+              - listitem [ref=e558]: 42783-JOB
+          - listitem [ref=e559]:
+            - heading "Sr Manager, Financial Business Systems – India" [level=3] [ref=e563]:
+              - link "Sr Manager, Financial Business Systems – India" [ref=e564] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/India---Bengaluru---Manyata/Sr-Financial-Business-Systems-Analyst_41311-JOB?q=principal
+            - generic [ref=e573]:
+              - term [ref=e574]: locations
+              - definition [ref=e575]: India - Bengaluru - Manyata
+            - generic [ref=e585]:
+              - term [ref=e586]: posted on
+              - definition [ref=e587]: Posted 30+ Days Ago
+            - list [ref=e588]:
+              - listitem [ref=e589]: 41311-JOB
+          - listitem [ref=e590]:
+            - heading "Manufacturing Equipment Engineer Trainee" [level=3] [ref=e594]:
+              - link "Manufacturing Equipment Engineer Trainee" [ref=e595] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Woodlands---NorthTech/Manufacturing-Equipment-Engineer-Trainee_41873-JOB?q=principal
+            - generic [ref=e604]:
+              - term [ref=e605]: locations
+              - definition [ref=e606]: Singapore - Woodlands - NorthTech
+            - generic [ref=e616]:
+              - term [ref=e617]: posted on
+              - definition [ref=e618]: Posted 30+ Days Ago
+            - list [ref=e619]:
+              - listitem [ref=e620]: 41873-JOB
+          - listitem [ref=e621]:
+            - heading "Validation Engineer 2" [level=3] [ref=e625]:
+              - link "Validation Engineer 2" [ref=e626] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Validation-Engineer-2_42590-JOB-1?q=principal
+            - generic [ref=e635]:
+              - term [ref=e636]: locations
+              - definition [ref=e637]: US - California - San Diego
+            - generic [ref=e647]:
+              - term [ref=e648]: posted on
+              - definition [ref=e649]: Posted 30+ Days Ago
+            - list [ref=e650]:
+              - listitem [ref=e651]: 42590-JOB
+          - listitem [ref=e652]:
+            - heading "Sales Operations Analyst" [level=3] [ref=e656]:
+              - link "Sales Operations Analyst" [ref=e657] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/Singapore---Biopolis/Sr-Sales-Operations-Analyst_41935-JOB?q=principal
+            - generic [ref=e666]:
+              - term [ref=e667]: locations
+              - definition [ref=e668]: 2 Locations
+            - generic [ref=e678]:
+              - term [ref=e679]: posted on
+              - definition [ref=e680]: Posted 2 Days Ago
+            - list [ref=e681]:
+              - listitem [ref=e682]: 41935-JOB
+          - listitem [ref=e683]:
+            - heading "Engineer 1 - Fluidic Systems" [level=3] [ref=e687]:
+              - link "Engineer 1 - Fluidic Systems" [ref=e688] [cursor=pointer]:
+                - /url: /en-US/illumina-careers/job/US---California---San-Diego/Engineer-1---Fluidic-Systems_42275-JOB-1?q=principal
+            - generic [ref=e697]:
+              - term [ref=e698]: locations
+              - definition [ref=e699]: US - California - San Diego
+            - generic [ref=e709]:
+              - term [ref=e710]: posted on
+              - definition [ref=e711]: Posted 9 Days Ago
+            - list [ref=e712]:
+              - listitem [ref=e713]: 42275-JOB
+        - generic [ref=e714]:
+          - navigation "pagination" [ref=e715]:
+            - generic [ref=e716]:
+              - list [ref=e718]:
+                - listitem [ref=e719]:
+                  - button "page 1" [ref=e720] [cursor=pointer]: "1"
+                - listitem [ref=e721]:
+                  - button "page 2" [ref=e722] [cursor=pointer]: "2"
+              - button "next" [ref=e723] [cursor=pointer]
+          - paragraph [ref=e727]: 1 - 20 of 32 jobs
+      - region "Job Details" [ref=e730]:
+        - generic [ref=e731]:
+          - generic [ref=e732]:
+            - button "Close job details" [active] [ref=e734] [cursor=pointer]
+            - button "Return to selected search result" [ref=e739] [cursor=pointer]:
+              - generic [ref=e740]: Return to selected search result
+            - generic [ref=e743]:
+              - generic [ref=e744]:
+                - heading "Principal Deep Learning/AI Engineer, Bioinformatics" [level=2] [ref=e745]
+                - button "Open in new window" [ref=e747] [cursor=pointer]
+              - button "Apply" [ref=e755] [cursor=pointer]
+          - generic "Job Posting Description" [ref=e759]:
+            - generic [ref=e761]:
+              - generic [ref=e769]:
+                - term [ref=e770]: locations
+                - definition [ref=e771]: US - California - San Diego
+              - generic [ref=e772]:
+                - generic [ref=e781]:
+                  - term [ref=e782]: time type
+                  - definition [ref=e783]: Full time
+                - generic [ref=e792]:
+                  - term [ref=e793]: posted on
+                  - definition [ref=e794]: Posted 30+ Days Ago
+                - generic [ref=e803]:
+                  - term [ref=e804]: job requisition id
+                  - definition [ref=e805]: 42597-JOB
+            - generic [ref=e808]:
+              - text: What if the work you did every day could impact the lives of people you know? Or all of humanity?
+              - heading [level=2]
+              - paragraph [ref=e809]
+              - text: At Illumina, we are expanding access to genomic technology to realize health equity for billions of people around the world. Our efforts enable life-changing discoveries that are transforming human health through the early detection and diagnosis of diseases and new treatment options for patients.
+              - heading [level=2]
+              - paragraph [ref=e810]
+              - text: Working at Illumina means being part of something bigger than yourself. Every person, in every role, has the opportunity to make a difference. Surrounded by extraordinary people, inspiring leaders, and world changing projects, you will do more and become more than you ever thought possible.
+              - heading [level=2]
+              - paragraph [ref=e811]
+              - paragraph [ref=e812]: Position Summary
+              - paragraph [ref=e813]
+              - paragraph [ref=e814]: The Principal Deep Learning/AI Engineer Bioinformatics is a senior hands-on technical expert responsible for inventing, implementing, and validating AI- and ML-driven bioinformatics methods that directly power Illumina’s sequencing and analysis products. This role is primarily technical in nature, with deep personal ownership of algorithm design, model development, benchmarking, and production readiness. The role partners with product and engineering to ensure AI methods are scientifically sound, performant at scale, and ready for real-world customer and/or clinical use, while providing technical direction and mentorship.
+              - paragraph [ref=e815]
+              - paragraph [ref=e816]: Key Responsibilities
+              - list [ref=e817]:
+                - listitem [ref=e818]: "Hands-on algorithm and model development: Design, prototype, and implement AI/ML methods for genomics and multiomics (e.g., basecalling, variant calling, error modeling, QC, anomaly detection, methylation, single-cell, metagenomics, assembly, interpretation)."
+                - listitem [ref=e819]: "Technical ownership of AI in products: Serve as the technical authority for AI features embedded in Illumina software and pipelines, from concept through production release."
+                - listitem [ref=e820]: "People leadership: Lead a focused team to create, enhance, and sustain ML and AI products and tools."
+                - listitem [ref=e821]: "Benchmarking and validation: Define gold-standard datasets, evaluation metrics, and statistical validation approaches; personally review and approve model performance and scientific claims."
+                - listitem [ref=e822]: "Production ML rigor: Work directly with engineers to ensure models are reproducible, versioned, monitored, and robust in production (training pipelines, inference efficiency, regression detection)."
+                - listitem [ref=e823]: "Data-centric AI leadership: Drive data strategy for model performance, including curation, labeling, augmentation, and bias/edge-case analysis across instruments, assays, and populations."
+                - listitem [ref=e824]: "Technical design reviews: Lead architecture and design reviews for AI and bioinformatics components; set coding, testing, and documentation standards."
+                - listitem [ref=e825]: "AI adoption through technical excellence: Enable adoption by delivering models that measurably improve accuracy, speed, cost, and usability—rather than through programmatic or organizational mandates."
+                - listitem [ref=e826]: "Regulated and clinical readiness: Provide technical input and documentation for design controls, traceability, and validation where AI methods are used in regulated contexts."
+                - listitem [ref=e827]: "Mentorship and technical guidance: Mentor senior and junior scientists and engineers as a technical authority and reviewer."
+                - listitem [ref=e828]: "External technical engagement: Patent, present, and -on occasion- publish technical work; evaluate external methods, tools, and collaborations for technical fit and differentiation."
+              - paragraph [ref=e829]
+              - paragraph [ref=e830]: Required Qualifications
+              - list [ref=e831]:
+                - listitem [ref=e832]: Typically requires a minimum of 15 years of related experience with a Bachelor’s degree; or 12 years and a Master’s degree; or a PhD with 8 years of experience; or equivalent experience.
+                - listitem [ref=e833]: PhD (strongly preferred) or MS with equivalent depth in Bioinformatics, Computational Biology, Computer Science, Statistics, or a related field.
+                - listitem [ref=e834]: 10+ years of hands-on experience developing algorithms and ML models for biological data, with sustained personal technical contribution.
+                - listitem [ref=e835]: Proven track record of shipping AI/ML-driven bioinformatics methods into production software used by external customers.
+                - listitem [ref=e836]: Deep expertise in genomics data types and workflows (FASTQ/BAM/CRAM/VCF, reference genomes, annotations, pipelines).
+                - listitem [ref=e837]: Strong applied ML background, including deep learning, probabilistic modeling, and rigorous model evaluation.
+                - listitem [ref=e838]: Demonstrated ability to work close to the code and data, including reviewing implementations and results.
+              - paragraph [ref=e839]
+              - paragraph [ref=e840]: Preferred Qualifications
+              - list [ref=e841]:
+                - listitem [ref=e842]: Experience with sequencing-instrument–adjacent AI (basecalling, signal processing, error modeling, run QC).
+                - listitem [ref=e843]: Experience operating in regulated or clinical software environments.
+                - listitem [ref=e844]: Publications and/or patents in AI, ML, or bioinformatics with clear product relevance.
+                - listitem [ref=e845]: Experience optimizing models for scale, latency, and cost in production environments.
+                - listitem [ref=e846]: Hands on experience leveraging AI tools for development work.
+              - paragraph [ref=e847]
+              - paragraph [ref=e848]: Role Emphasis
+              - paragraph [ref=e849]
+              - paragraph [ref=e850]: This role is designed as a technical authority and hands-on expert. Success is measured by the quality, robustness, and real-world impact of AI/ML bioinformatics methods shipped into Illumina products.
+              - paragraph [ref=e851]
+              - paragraph [ref=e852]: "#LI-HYBRID"
+              - heading [level=3]
+              - paragraph [ref=e853]
+              - text: "The estimated base salary range for the Principal Deep Learning/AI Engineer, Bioinformatics role based in the United States of America is: $205,100 - $307,700. Should the level or location of the role change during the hiring process, the applicable base pay range may be updated accordingly. The range reflects long‑term growth in the role. Most candidates are hired between the minimum and middle of the range. Placement depends on experience, skills, location, and internal equity. Additionally, all employees are eligible for one of our variable cash programs (bonus or commission) and eligible roles may receive equity as part of the compensation package. We offer a wide range of benefits as innovative as our work, including access to genomics sequencing, family planning, health/dental/vision, retirement benefits, and paid time off."
+              - heading [level=3]
+              - paragraph [ref=e854]
+              - text: "We are a company deeply rooted in belonging, promoting an inclusive environment where employees feel valued and empowered to contribute to our mission. Built on a strong foundation, Illumina has always prioritized openness, collaboration, and seeking alternative perspectives to propel innovation in genomics. We are proud to confirm a zero-net gap in pay, regardless of gender, ethnicity, or race. We also have several Employee Resource Groups (ERG) that deliver career development experiences, increase cultural awareness, and offer opportunities to engage in social responsibility. We are proud to be an equal opportunity employer committed to providing employment opportunity regardless of sex, race, creed, color, gender, religion, marital status, domestic partner status, age, national origin or ancestry, physical or mental disability, medical condition, sexual orientation, pregnancy, military or veteran status, citizenship status, and genetic information. Illumina conducts background checks on applicants for whom a conditional offer of employment has been made. Qualified applicants with arrest or conviction records will be considered for employment in accordance with applicable local, state, and federal laws. Background check results may potentially result in the withdrawal of a conditional offer of employment. The background check process and any decisions made as a result shall be made in accordance with all applicable local, state, and federal laws. Illumina prohibits the use of generative artificial intelligence (AI) in the application and interview process. If you require accommodation to complete the application or interview process, please contact accommodations@illumina.com. To learn more, visit: https://www.dol.gov/ofccp/regs/compliance/posters/pdf/eeopost.pdf. The position will be posted until a final candidate is selected or the requisition has a sufficient number of qualified applicants."
+            - generic [ref=e856]:
+              - heading "Similar Jobs (1)" [level=3] [ref=e857]
+              - list "Similar jobs" [ref=e858]:
+                - listitem [ref=e859]:
+                  - heading "Senior Bioinformatics Scientist" [level=3] [ref=e863]:
+                    - link "Senior Bioinformatics Scientist" [ref=e864] [cursor=pointer]:
+                      - /url: /en-US/illumina-careers/job/US---California---San-Diego/Senior-Bioinformatics-Scientist_42244-JOB-1?q=principal
+                  - generic [ref=e865]:
+                    - generic [ref=e873]:
+                      - term [ref=e874]: locations
+                      - definition [ref=e875]: US - California - San Diego
+                    - generic [ref=e884]:
+                      - term [ref=e885]: time type
+                      - definition [ref=e886]: Full time
+                  - generic [ref=e896]:
+                    - term [ref=e897]: posted on
+                    - definition [ref=e898]: Posted 30+ Days Ago
+  - generic [ref=e899]:
+    - heading "Follow Us" [level=4] [ref=e900]
+    - list [ref=e901]:
+      - listitem [ref=e902] [cursor=pointer]:
+        - link "X" [ref=e903]:
+          - /url: https://twitter.com/illumina
+      - listitem [ref=e907] [cursor=pointer]:
+        - link "YouTube" [ref=e908]:
+          - /url: https://www.youtube.com/playlist?list=PLKRu7cmBQlai7YdNq6jrP1jxDueGBtteZ
+      - listitem [ref=e914] [cursor=pointer]:
+        - link "Glassdoor" [ref=e915]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-Illumina-EI_IE11671.11,19.htm
+      - listitem [ref=e920] [cursor=pointer]:
+        - link "LinkedIn" [ref=e921]:
+          - /url: https://www.linkedin.com/company/illumina/
+      - listitem [ref=e925] [cursor=pointer]:
+        - link "Facebook" [ref=e926]:
+          - /url: https://www.facebook.com/illuminainc
+    - generic [ref=e930]:
+      - img [ref=e934]
+      - generic [ref=e954]: © 2026 Workday, Inc. All rights reserved.
