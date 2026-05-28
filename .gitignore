@@ -66,3 +66,6 @@ examples/private/
 *Ilya*
 *real_*
 *_real.*
+
+# Playwright MCP browser traces (local only)
+.playwright-mcp/
