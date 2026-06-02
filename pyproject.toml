@@ -45,8 +45,8 @@ dev = [
 jobber = "jobber.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/ichorny/jobber"
-Issues = "https://github.com/ichorny/jobber/issues"
+Homepage = "https://github.com/ilchorny/jobber"
+Issues = "https://github.com/ilchorny/jobber/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/jobber"]
