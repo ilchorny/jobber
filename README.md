@@ -10,6 +10,17 @@ Cover letters and resumes for every new role are bespoke. The work is the same e
 
 ## Install
 
+### Requirements
+
+`jobber` drives Claude under the hood for every content-producing step (`extract`, `apply`, `draft`, `review`). You need one of:
+
+- **Claude Code CLI on PATH** (auto-selected if present). Reuses your existing `claude` auth, no API key needed. Get it at https://claude.com/code.
+- **Anthropic API key** (fallback). Set `ANTHROPIC_API_KEY` in your environment.
+
+Override the auto-pick with `JOBBER_LLM_BACKEND=claude-cli` or `JOBBER_LLM_BACKEND=anthropic-api`. Housekeeping commands that don't generate content (`init`, `render`, `finalize` without `--refresh-db`, `map`) run without an LLM.
+
+### Setup
+
 ```bash
 pip install -e .
 jobber init --library /path/to/folder-of-past-materials
