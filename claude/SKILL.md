@@ -24,7 +24,7 @@ You orchestrate the `jobber` CLI for the user. The CLI does the heavy lifting (J
 | `jobber finalize <app-id> [--refresh-db]` | When the user signals the application is ready to send. Copies the polished drafts back into the library folder so the next extract sees them. `--refresh-db` also re-runs extract inline. |
 | `jobber map <app-id>` | If the user wants to re-rank the evidence mapping before re-drafting. Opens mapping.json in $EDITOR. |
 | `jobber draft <app-id>` | Re-runs drafting using the current mapping. Use after `jobber map` edits, or after profile/DB changes. |
-| `jobber extract [--overwrite]` | Bootstraps or refreshes the achievements DB from the library folder. Run once at setup, or after adding new files to the library. |
+| `jobber extract [--overwrite] [--no-update-tone]` | Bootstraps or refreshes the achievements DB from the library folder. Run once at setup, or after adding new files to the library. By default also re-extracts the tone profile from `library/cover_letters/`; pass `--no-update-tone` to skip that (useful when you've hand-edited `~/.jobber/tone.json` and don't want it overwritten). |
 | `jobber init [--library <path>] [--seed-from-claude-memory]` | First-time setup. Creates `~/.jobber/`, optionally links a library folder, optionally seeds voice/attribution rules from `~/.claude` memory. |
 
 ## Primary flow

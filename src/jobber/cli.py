@@ -16,7 +16,7 @@ from rich.table import Table
 from . import achievements as ach_mod
 from . import draft as draft_mod
 from . import extract as extract_mod
-from . import jd, library, profile, render, report
+from . import jd, profile, render, report
 from . import review as review_mod
 from . import tone as tone_mod
 from .llm import LLMConfig
@@ -192,15 +192,7 @@ def apply(
         )
         raise typer.Exit(2)
 
-    console.print("[bold]3.[/bold] Indexing library (supplementary voice context)...")
-    try:
-        idx = library.build_index()
-        library_yaml = idx.as_prompt_yaml() if idx.roles else ""
-    except Exception as exc:
-        console.print(f"[yellow]Library indexing skipped:[/yellow] {exc}")
-        library_yaml = ""
-
-    console.print("[bold]4.[/bold] Extracting requirements...")
+    console.print("[bold]3.[/bold] Extracting requirements...")
     requirements = extract_mod.extract(jd_text)
     company = (requirements.get("company") or "unknown").strip()
     role_title = (requirements.get("role_title") or "role").strip()
@@ -212,7 +204,7 @@ def apply(
     if context:
         (out_dir / "context.md").write_text(context.strip() + "\n")
 
-    console.print(f"[bold]5.[/bold] Mapping requirements to achievements...  ({app_id})")
+    console.print(f"[bold]4.[/bold] Mapping requirements to achievements...  ({app_id})")
     prof = profile.load()
     tone_data = tone_mod.load()
     tone_text = tone_mod.as_prompt_text(tone_data)
@@ -222,12 +214,11 @@ def apply(
         requirements=requirements,
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
-        library_yaml=library_yaml,
         extra_context=context,
     )
     (out_dir / "mapping.json").write_text(json.dumps(mapping, indent=2))
 
-    console.print("[bold]6.[/bold] Writing mapping report...")
+    console.print("[bold]5.[/bold] Writing mapping report...")
     rep_md = report.write_report(
         company=company,
         role_title=role_title,
@@ -240,7 +231,7 @@ def apply(
     cfg = LLMConfig()
     draft_m = draft_model or cfg.draft_model
 
-    console.print("[bold]7.[/bold] Drafting cover letter...")
+    console.print("[bold]6.[/bold] Drafting cover letter...")
     cover = draft_mod.draft_cover_letter(
         jd_text=jd_text,
         requirements=requirements,
@@ -248,13 +239,12 @@ def apply(
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
     )
     (out_dir / "cover_letter.md").write_text(cover + "\n")
 
-    console.print("[bold]8.[/bold] Drafting resume...")
+    console.print("[bold]7.[/bold] Drafting resume...")
     res = draft_mod.draft_resume(
         jd_text=jd_text,
         requirements=requirements,
@@ -262,14 +252,13 @@ def apply(
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=context,
         model=draft_m,
     )
     (out_dir / "resume.md").write_text(res + "\n")
 
     if not no_pdf:
-        console.print("[bold]9.[/bold] Rendering PDFs...")
+        console.print("[bold]8.[/bold] Rendering PDFs...")
         for name in ("cover_letter", "resume", "mapping_report"):
             md = out_dir / f"{name}.md"
             pdf = out_dir / f"{name}.pdf"
@@ -343,11 +332,6 @@ def draft(
     achievements = ach_mod.load()
     achievements_json = ach_mod.as_prompt_json(achievements)
     tone_text = tone_mod.as_prompt_text(tone_mod.load())
-    try:
-        idx = library.build_index()
-        library_yaml = idx.as_prompt_yaml() if idx.roles else ""
-    except Exception:
-        library_yaml = ""
     prof = profile.load()
 
     cover = draft_mod.draft_cover_letter(
@@ -357,7 +341,6 @@ def draft(
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
     )
@@ -370,7 +353,6 @@ def draft(
         achievements_json=achievements_json,
         profile_yaml=prof.as_yaml(),
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=context,
         model=draft_model,
     )
@@ -398,6 +380,11 @@ def render_cmd(app_id: str = typer.Argument(...)):
 def extract(
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Replace an existing achievements.json. By default, the command refuses to clobber non-empty data."
+    ),
+    update_tone: bool = typer.Option(
+        True,
+        "--update-tone/--no-update-tone",
+        help="Also re-extract the tone profile from past cover letters. On by default; pass --no-update-tone to skip.",
     ),
 ):
     """Read your library folder and produce a draft achievements.json.
@@ -431,23 +418,28 @@ def extract(
         f"{n_pub} publications. Review and edit by hand before your next `jobber apply`."
     )
 
-    # Also extract a tone profile from past cover letters so the drafter speaks
-    # in the user's voice rather than a generic professional register.
-    console.print()
-    console.print("Extracting tone profile from past cover letters...")
-    tone_data = tone_mod.extract_from_library()
-    tone_path = tone_mod.save(tone_data)
-    n_openers = len(tone_data.get("openers") or [])
-    n_phrases = len(tone_data.get("recurring_phrases") or [])
-    n_sources = len(tone_data.get("source_files") or [])
-    if n_sources:
-        console.print(
-            f"[green]Wrote[/green] {tone_path} from {n_sources} cover letter(s): "
-            f"{n_openers} openers, {n_phrases} recurring phrases captured."
-        )
+    if update_tone:
+        console.print()
+        console.print("Extracting tone profile from past cover letters...")
+        tone_data = tone_mod.extract_from_library()
+        tone_path = tone_mod.save(tone_data)
+        n_openers = len(tone_data.get("openers") or [])
+        n_phrases = len(tone_data.get("recurring_phrases") or [])
+        n_sources = len(tone_data.get("source_files") or [])
+        if n_sources:
+            console.print(
+                f"[green]Wrote[/green] {tone_path} from {n_sources} cover letter(s): "
+                f"{n_openers} openers, {n_phrases} recurring phrases captured."
+            )
+        else:
+            console.print(
+                f"[yellow]No cover letters found in library/cover_letters/; tone profile is empty.[/yellow]"
+            )
     else:
+        console.print()
         console.print(
-            f"[yellow]No cover letters found in library/cover_letters/; tone profile is empty.[/yellow]"
+            f"[dim]Tone profile not updated (--no-update-tone). "
+            f"Current profile: {tone_mod.db_path()}[/dim]"
         )
 
 

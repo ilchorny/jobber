@@ -13,7 +13,7 @@ Cover letters and resumes for every new role are bespoke. The work is the same e
 ```bash
 pip install -e .
 jobber init --library /path/to/folder-of-past-materials
-jobber extract                         # bootstrap ~/.jobber/achievements.json from your library
+jobber extract                         # bootstrap ~/.jobber/achievements.json and ~/.jobber/tone.json from your library
 ```
 
 ## Quickstart
@@ -39,8 +39,8 @@ Outputs land in `~/.jobber/applications/{company}_{role}_{date}/`:
 ```
 JD ──► extract requirements (R1..Rn, Q1..Qn, P1..Pn) ──┐
                                                        ├──► map ──► report + drafts ──► PDFs
-achievements DB (authoritative) ───────────────────────┘                  │
-library (voice samples)                                                   ▼
+achievements DB (authoritative facts) ─────────────────┤                  │
+tone profile (authoritative voice) ────────────────────┘                  ▼
                                                                        reviewer
                                                                           │
                                                                           ▼
@@ -50,12 +50,17 @@ library (voice samples)                                                   ▼
                                                   polished drafts → library → next extract
 ```
 
-Two stores on your machine, both gitignored, each with a distinct role:
+Three pipeline stores under `~/.jobber/`, all gitignored, each with a distinct role (the user-edited `profile.yaml` is separate config, not a feedback-loop output):
 
-- **`~/.jobber/library/`**: the raw corpus. Past resumes, cover letters, JDs you've applied to, notes. You add files here whenever you have new material. This is the upstream input to `jobber extract`.
-- **`~/.jobber/achievements.json`**: the structured database produced by `jobber extract` from the library. Every bullet, publication, patent, and credential, each with a stable `attribution` flag (`personally_built`, `directed_team_reviewed`, `led_org`, `co_led`, `co_author`, `contributed`, `partnered_external`). This is the authoritative source for every draft — facts must round-trip through here so attribution can be enforced.
+- **`~/.jobber/library/`**: the raw corpus. Past resumes, cover letters, JDs you've applied to, notes. You add files here whenever you have new material. This is the upstream input to `jobber extract`. It is **never** loaded into a drafting prompt directly — it is compressed into the two structured outputs below.
+- **`~/.jobber/achievements.json`**: the structured database produced by `jobber extract` from the library. Every bullet, publication, patent, and credential, each with a stable `attribution` flag (`personally_built`, `directed_team_reviewed`, `led_org`, `co_led`, `co_author`, `contributed`, `partnered_external`). This is the authoritative source for every factual claim in a draft.
+- **`~/.jobber/tone.json`**: the tone profile, also produced by `jobber extract` from past cover letters. Captures openers, closers, section pivots, recurring phrases, sentence rhythm, vocabulary, and a "do-not-use" list. This is the authoritative voice guidance for the drafter. Without it, drafts drift toward a generic professional register.
 
-At draft time the library is still passed to the drafter, but only as a voice/tone reference. Any factual claim in a generated cover letter or resume should trace back to an achievement in the DB, not to a raw library file. `jobber review` enforces this by auditing the drafts against the DB.
+Splitting voice from facts keeps the drafting prompt compact (a 30KB library doesn't get re-sent on every `jobber apply`) and lets you hand-edit `tone.json` to correct over- or under-reaches.
+
+`jobber extract` updates both stores by default. Pass `--no-update-tone` to refresh only the achievements DB.
+
+Any factual claim in a generated cover letter or resume must trace back to an achievement in the DB, not to a raw library file. `jobber review` enforces this by auditing the drafts against the DB.
 
 The reviewer is a separate LLM pass that audits the drafted documents against the DB and the JD. It flags hallucinations (claims with no DB backing), attribution slips (the draft says "I built" but the DB says "directed_team_reviewed"), inaccurate comparisons, and citation errors. Treat its findings as a checklist before you send.
 
@@ -80,8 +85,9 @@ That installs a thin skill wrapper to `~/.claude/skills/jobber/` and allowlists 
 /jobber finalize <app-id> --refresh-db
 /jobber map <app-id>
 /jobber draft <app-id>
-/jobber extract               # rebuild achievements DB
+/jobber extract               # rebuild achievements DB and refresh tone profile
 /jobber extract --overwrite
+/jobber extract --no-update-tone   # rebuild achievements DB only; keep tone.json untouched
 ```
 
 `<app-id>` is the directory name under `~/.jobber/applications/`, e.g. `acme_staff_engineer_2026-05-27`.

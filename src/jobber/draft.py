@@ -1,4 +1,4 @@
-"""Draft the cover letter and resume from JD + mapping + profile + library."""
+"""Draft the cover letter and resume from JD + mapping + achievements + tone profile."""
 from __future__ import annotations
 
 import json
@@ -13,8 +13,7 @@ You draft a cover letter for the candidate. Inputs you receive:
   3. Achievements DB JSON (AUTHORITATIVE source of every bullet you may reference)
   4. User profile YAML (voice rules, constraints, attribution overrides)
   5. Tone profile (AUTHORITATIVE voice guidance extracted from the user's past letters)
-  6. Optional supplementary library context (voice samples only)
-  7. Optional extra context
+  6. Optional extra context
 
 Output ONLY the cover letter in Markdown. Nothing else. No preamble, no explanation, no code fences.
 
@@ -116,7 +115,6 @@ def _common_user(
     achievements_json: str,
     profile_yaml: str,
     tone_text: str,
-    library_yaml: str,
     extra_context: str,
 ) -> str:
     return (
@@ -132,8 +130,6 @@ def _common_user(
         + profile_yaml
         + "\n\nTONE PROFILE (AUTHORITATIVE voice guidance):\n"
         + (tone_text or "(no tone profile yet)")
-        + "\n\nSUPPLEMENTARY LIBRARY (voice samples only):\n"
-        + (library_yaml or "(none)")
         + "\n\nEXTRA CONTEXT:\n"
         + (extra_context or "(none)")
     )
@@ -147,7 +143,6 @@ def draft_cover_letter(
     achievements_json: str,
     profile_yaml: str,
     tone_text: str = "",
-    library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
 ) -> str:
@@ -158,7 +153,6 @@ def draft_cover_letter(
         achievements_json=achievements_json,
         profile_yaml=profile_yaml,
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=extra_context,
     )
     raw = call(system=COVER_SYSTEM, user=user, cache_system=False, model=model, max_tokens=4000)
@@ -173,7 +167,6 @@ def draft_resume(
     achievements_json: str,
     profile_yaml: str,
     tone_text: str = "",
-    library_yaml: str = "",
     extra_context: str = "",
     model: str | None = None,
 ) -> str:
@@ -184,7 +177,6 @@ def draft_resume(
         achievements_json=achievements_json,
         profile_yaml=profile_yaml,
         tone_text=tone_text,
-        library_yaml=library_yaml,
         extra_context=extra_context,
     )
     raw = call(system=RESUME_SYSTEM, user=user, cache_system=False, model=model, max_tokens=6000)
