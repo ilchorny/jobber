@@ -82,7 +82,8 @@ That installs a thin skill wrapper to `~/.claude/skills/jobber/` and allowlists 
 /jobber review <app-id>
 /jobber render <app-id>
 /jobber finalize <app-id>
-/jobber finalize <app-id> --refresh-db
+/jobber finalize <app-id> --refresh-db                       # also refreshes achievements DB and tone profile
+/jobber finalize <app-id> --refresh-db --no-update-tone      # refresh achievements DB only
 /jobber map <app-id>
 /jobber draft <app-id>
 /jobber extract               # rebuild achievements DB and refresh tone profile

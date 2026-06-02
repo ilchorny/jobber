@@ -449,7 +449,12 @@ def finalize(
     refresh_db: bool = typer.Option(
         False,
         "--refresh-db",
-        help="After copying, re-run `jobber extract --overwrite` to refresh achievements.json.",
+        help="After copying, refresh achievements.json (and tone.json unless --no-update-tone) from the updated library.",
+    ),
+    update_tone: bool = typer.Option(
+        True,
+        "--update-tone/--no-update-tone",
+        help="When --refresh-db is set, also re-extract the tone profile from past cover letters. On by default; pass --no-update-tone to skip.",
     ),
 ):
     """Copy the (presumably user-edited) drafts back into the library folder.
@@ -498,11 +503,28 @@ def finalize(
         ach_mod.save(data)
         n_ach = len(data.get("achievements") or [])
         console.print(f"[green]refreshed[/green] achievements DB ({n_ach} achievements)")
+
+        if update_tone:
+            console.print("Refreshing tone profile from past cover letters...")
+            tone_data = tone_mod.extract_from_library()
+            tone_mod.save(tone_data)
+            n_sources = len(tone_data.get("source_files") or [])
+            if n_sources:
+                n_openers = len(tone_data.get("openers") or [])
+                n_phrases = len(tone_data.get("recurring_phrases") or [])
+                console.print(
+                    f"[green]refreshed[/green] tone profile from {n_sources} cover letter(s): "
+                    f"{n_openers} openers, {n_phrases} recurring phrases"
+                )
+            else:
+                console.print(
+                    "[yellow]No cover letters found in library/cover_letters/; tone profile is empty.[/yellow]"
+                )
     else:
         console.print()
         console.print(
             "Next: run `jobber extract --overwrite` (or `jobber finalize {app} --refresh-db`) "
-            "to fold the new material into your achievements DB.".format(app=app_id)
+            "to fold the new material into your achievements DB and tone profile.".format(app=app_id)
         )
 
 

@@ -21,7 +21,7 @@ You orchestrate the `jobber` CLI for the user. The CLI does the heavy lifting (J
 | `jobber apply "<JD URL or path>" [--context "<extra>"]` | Full pipeline. First step for every new application. |
 | `jobber review <app-id>` | After `apply`. Audits the drafts for hallucinations, attribution slips, inaccurate comparisons, citation problems. |
 | `jobber render <app-id>` | After the user hand-edits `cover_letter.md` or `resume.md`. Regenerates PDFs from the markdown. |
-| `jobber finalize <app-id> [--refresh-db]` | When the user signals the application is ready to send. Copies the polished drafts back into the library folder so the next extract sees them. `--refresh-db` also re-runs extract inline. |
+| `jobber finalize <app-id> [--refresh-db] [--no-update-tone]` | When the user signals the application is ready to send. Copies the polished drafts back into the library folder so the next extract sees them. `--refresh-db` also refreshes the achievements DB and the tone profile inline (pass `--no-update-tone` to skip the tone refresh, e.g. if the user has hand-edited `~/.jobber/tone.json`). |
 | `jobber map <app-id>` | If the user wants to re-rank the evidence mapping before re-drafting. Opens mapping.json in $EDITOR. |
 | `jobber draft <app-id>` | Re-runs drafting using the current mapping. Use after `jobber map` edits, or after profile/DB changes. |
 | `jobber extract [--overwrite] [--no-update-tone]` | Bootstraps or refreshes the achievements DB from the library folder. Run once at setup, or after adding new files to the library. By default also re-extracts the tone profile from `library/cover_letters/`; pass `--no-update-tone` to skip that (useful when you've hand-edited `~/.jobber/tone.json` and don't want it overwritten). |
