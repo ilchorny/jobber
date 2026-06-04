@@ -19,6 +19,11 @@ Cover letters and resumes for every new role are bespoke. The work is the same e
 
 Override the auto-pick with `JOBBER_LLM_BACKEND=claude-cli` or `JOBBER_LLM_BACKEND=anthropic-api`. Housekeeping commands that don't generate content (`init`, `render`, `finalize` without `--refresh-db`, `map`) run without an LLM.
 
+Rendering also depends on two system tools:
+
+- **Google Chrome** for Markdown → PDF (uses headless `--print-to-pdf`). On macOS jobber looks at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` by default; override with `JOBBER_CHROME_PATH=<absolute path>` for other platforms. Missing Chrome means PDFs are skipped with a yellow warning; the rest of the pipeline still works.
+- **pandoc** for Markdown ↔ DOCX. Install with `brew install pandoc` on macOS, `apt install pandoc` on Debian/Ubuntu, or see https://pandoc.org/installing.html. Missing pandoc means `.docx` outputs are skipped (same yellow warning); the rest still works.
+
 ### Setup
 
 ```bash
@@ -33,8 +38,8 @@ jobber extract                         # bootstrap ~/.jobber/achievements.json a
 jobber apply https://job-boards.greenhouse.io/.../jobs/12345
 jobber apply path/to/jd.txt --context "lean on FDA work, ex-Roche hiring manager"
 jobber review <app-id>                 # auditor pass: flags hallucinations and attribution slips
-# (edit cover_letter.md / resume.md by hand)
-jobber render <app-id>                 # regenerate PDFs after edits
+# (edit cover_letter.md / resume.md OR the .docx by hand)
+jobber render <app-id>                 # regenerate PDFs (and sync .md <-> .docx) after edits
 jobber finalize <app-id>               # copy polished drafts back into library/
 ```
 

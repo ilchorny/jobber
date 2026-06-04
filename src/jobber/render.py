@@ -99,6 +99,22 @@ def md_to_docx(md_path: Path, docx_path: Path) -> Path:
     return docx_path
 
 
+def docx_to_md(docx_path: Path, md_path: Path) -> Path:
+    """Convert a DOCX file back to Markdown via pandoc. Returns the MD path.
+
+    Used by `jobber render` when the user has edited the `.docx` directly and
+    we need to pull those edits back into the canonical `.md` so the PDF and
+    achievements-DB feedback loop stay consistent.
+    """
+    subprocess.run(
+        ["pandoc", str(docx_path), "-o", str(md_path), "-t", "gfm"],
+        check=True,
+        capture_output=True,
+        timeout=30,
+    )
+    return md_path
+
+
 def _pdf_complete(pdf_path: Path) -> bool:
     """A well-formed PDF ends with the %%EOF marker (within the last 1KB)."""
     try:
