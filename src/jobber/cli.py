@@ -267,6 +267,14 @@ def apply(
                 console.print(f"   [green]wrote[/green] {pdf}")
             except Exception as exc:
                 console.print(f"   [yellow]skipped[/yellow] {pdf}: {exc}")
+        for name in ("cover_letter", "resume"):
+            md = out_dir / f"{name}.md"
+            docx = out_dir / f"{name}.docx"
+            try:
+                render.md_to_docx(md, docx)
+                console.print(f"   [green]wrote[/green] {docx}")
+            except Exception as exc:
+                console.print(f"   [yellow]skipped[/yellow] {docx}: {exc}")
 
     _summary(app_id, mapping)
 
@@ -362,13 +370,57 @@ def draft(
 
 @app.command(name="render")
 def render_cmd(app_id: str = typer.Argument(...)):
-    """Re-render PDFs from current .md files in the application directory."""
+    """Re-render PDFs and DOCX from whichever of `.md` / `.docx` is newer.
+
+    For cover_letter and resume, edit either the markdown or the DOCX and run
+    `jobber render <app-id>`: whichever file you touched last is treated as
+    the source of truth. If you edited the DOCX, jobber pulls those edits
+    back into the `.md` via pandoc, then re-renders the PDF from the updated
+    markdown. The `.md` stays the canonical form that `jobber finalize`
+    copies into the library.
+
+    `mapping_report` only has a `.md` source; it just re-renders the PDF.
+    """
     out_dir = _require_app(app_id)
-    for name in ("cover_letter", "resume", "mapping_report"):
+
+    for name in ("cover_letter", "resume"):
         md = out_dir / f"{name}.md"
-        if not md.exists():
-            continue
+        docx = out_dir / f"{name}.docx"
         pdf = out_dir / f"{name}.pdf"
+
+        md_mtime = md.stat().st_mtime if md.exists() else 0.0
+        docx_mtime = docx.stat().st_mtime if docx.exists() else 0.0
+
+        if md_mtime == 0.0 and docx_mtime == 0.0:
+            continue
+
+        if docx_mtime > md_mtime:
+            try:
+                render.docx_to_md(docx, md)
+                console.print(f"[green]wrote[/green] {md} (from {docx})")
+            except Exception as exc:
+                console.print(f"[yellow]skipped[/yellow] {md}: {exc}")
+                continue
+            try:
+                render.md_to_pdf(md, pdf)
+                console.print(f"[green]wrote[/green] {pdf}")
+            except Exception as exc:
+                console.print(f"[yellow]skipped[/yellow] {pdf}: {exc}")
+        else:
+            try:
+                render.md_to_pdf(md, pdf)
+                console.print(f"[green]wrote[/green] {pdf}")
+            except Exception as exc:
+                console.print(f"[yellow]skipped[/yellow] {pdf}: {exc}")
+            try:
+                render.md_to_docx(md, docx)
+                console.print(f"[green]wrote[/green] {docx}")
+            except Exception as exc:
+                console.print(f"[yellow]skipped[/yellow] {docx}: {exc}")
+
+    md = out_dir / "mapping_report.md"
+    if md.exists():
+        pdf = out_dir / "mapping_report.pdf"
         try:
             render.md_to_pdf(md, pdf)
             console.print(f"[green]wrote[/green] {pdf}")
