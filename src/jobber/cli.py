@@ -267,6 +267,14 @@ def apply(
                 console.print(f"   [green]wrote[/green] {pdf}")
             except Exception as exc:
                 console.print(f"   [yellow]skipped[/yellow] {pdf}: {exc}")
+        for name in ("cover_letter", "resume"):
+            md = out_dir / f"{name}.md"
+            docx = out_dir / f"{name}.docx"
+            try:
+                render.md_to_docx(md, docx)
+                console.print(f"   [green]wrote[/green] {docx}")
+            except Exception as exc:
+                console.print(f"   [yellow]skipped[/yellow] {docx}: {exc}")
 
     _summary(app_id, mapping)
 
@@ -362,7 +370,7 @@ def draft(
 
 @app.command(name="render")
 def render_cmd(app_id: str = typer.Argument(...)):
-    """Re-render PDFs from current .md files in the application directory."""
+    """Re-render PDFs and DOCX from current .md files in the application directory."""
     out_dir = _require_app(app_id)
     for name in ("cover_letter", "resume", "mapping_report"):
         md = out_dir / f"{name}.md"
@@ -374,6 +382,16 @@ def render_cmd(app_id: str = typer.Argument(...)):
             console.print(f"[green]wrote[/green] {pdf}")
         except Exception as exc:
             console.print(f"[yellow]skipped[/yellow] {pdf}: {exc}")
+    for name in ("cover_letter", "resume"):
+        md = out_dir / f"{name}.md"
+        if not md.exists():
+            continue
+        docx = out_dir / f"{name}.docx"
+        try:
+            render.md_to_docx(md, docx)
+            console.print(f"[green]wrote[/green] {docx}")
+        except Exception as exc:
+            console.print(f"[yellow]skipped[/yellow] {docx}: {exc}")
 
 
 @app.command()
